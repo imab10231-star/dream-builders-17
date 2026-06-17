@@ -3,103 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>index.html</title>
+<title>Dream Builders 17</title>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green-deep:#1a3c2e;--green-mid:#2d6a4f;--green-light:#52b788;
-    --gold:#c9a84c;--gold-light:#f0d080;--cream:#f8f4ec;--white:#ffffff;
-    --text-dark:#1c1c1c;--text-mid:#3d3d3d;--border:#d4e6da;--red:#dc2626;
-  }
-  body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--text-dark);line-height:1.7;}
-  .tabs{display:flex;background:var(--green-deep);position:sticky;top:0;z-index:100;}
-  .tab-btn{flex:1;padding:14px 8px;border:none;background:transparent;color:rgba(255,255,255,0.6);font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;border-bottom:3px solid transparent;}
-  .tab-btn.active{color:var(--gold-light);border-bottom-color:var(--gold);}
-  .tab-panel{display:none;}.tab-panel.active{display:block;}
-  .hero{background:linear-gradient(145deg,var(--green-deep) 0%,var(--green-mid) 60%,#3a7d58 100%);color:var(--white);padding:56px 24px 48px;text-align:center;position:relative;overflow:hidden;}
-  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(201,168,76,0.18) 0%,transparent 60%);pointer-events:none;}
-  .badge{display:inline-block;background:rgba(201,168,76,0.25);border:1px solid var(--gold);color:var(--gold-light);font-size:0.78rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:18px;}
-  .hero h1{font-size:clamp(1.7rem,5vw,2.6rem);font-weight:700;line-height:1.25;margin-bottom:14px;}
-  .hero h1 span{color:var(--gold-light);}
-  .hero p{font-size:1rem;color:rgba(255,255,255,0.82);max-width:520px;margin:0 auto 28px;}
-  .hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:8px;}
-  .stat{text-align:center;}.stat .num{display:block;font-size:1.9rem;font-weight:700;color:var(--gold-light);line-height:1;}
-  .stat .lbl{font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:4px;}
-  .container{max-width:860px;margin:0 auto;padding:40px 20px 60px;}
-  .section-title{font-size:0.72rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--green-mid);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-  .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-  .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px;}
-  @media(max-width:600px){.rules-grid{grid-template-columns:1fr;}}
-  .rule-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px 20px 18px;transition:box-shadow 0.2s;}
-  .rule-card:hover{box-shadow:0 4px 18px rgba(45,106,79,0.1);}
-  .rule-card.full{grid-column:1/-1;}
-  .rule-card.highlight{border-color:var(--gold);background:linear-gradient(135deg,#fffef7 0%,#fff9e6 100%);}
-  .rule-card.alert{border-color:#e07b54;background:linear-gradient(135deg,#fff8f5 0%,#fff1eb 100%);}
-  .rule-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;}
-  .icon-green{background:#e8f5ee;}.icon-gold{background:#fef9e7;}.icon-orange{background:#fff3ee;}.icon-blue{background:#edf4ff;}
-  .rule-card h3{font-size:0.92rem;font-weight:700;color:var(--green-deep);margin-bottom:10px;}
-  .rule-card ul{list-style:none;padding:0;}
-  .rule-card ul li{font-size:0.87rem;color:var(--text-mid);padding:5px 0 5px 18px;position:relative;border-bottom:1px dashed #e8ede9;}
-  .rule-card ul li:last-child{border-bottom:none;}
-  .rule-card ul li::before{content:'›';position:absolute;left:0;color:var(--green-light);font-weight:700;font-size:1rem;}
-  .rule-card.alert ul li::before{color:#e07b54;}.rule-card.highlight ul li::before{color:var(--gold);}
-  .timeline{position:relative;padding-left:36px;margin-bottom:32px;}
-  .timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,var(--green-light),var(--gold));}
-  .tl-item{position:relative;margin-bottom:22px;}
-  .tl-item::before{content:'';position:absolute;left:-29px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--white);border:2px solid var(--green-light);}
-  .tl-item:last-child{margin-bottom:0;}
-  .tl-period{font-size:0.72rem;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
-  .tl-desc{font-size:0.88rem;color:var(--text-mid);background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 14px;}
-  .form-hero{background:linear-gradient(145deg,var(--green-deep) 0%,#1e5c3a 100%);color:var(--white);padding:48px 24px 40px;text-align:center;}
-  .form-hero h2{font-size:clamp(1.4rem,4vw,2rem);font-weight:700;margin-bottom:10px;}
-  .form-hero h2 span{color:var(--gold-light);}
-  .form-hero p{color:rgba(255,255,255,0.78);font-size:0.95rem;max-width:480px;margin:0 auto;}
-  .form-container{max-width:680px;margin:0 auto;padding:40px 20px 60px;}
-  .form-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:32px 28px;margin-bottom:24px;}
-  .form-card h3{font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--green-mid);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  @media(max-width:500px){.form-row{grid-template-columns:1fr;}}
-  .field{margin-bottom:18px;}
-  .field label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-deep);margin-bottom:6px;}
-  .field label span.req{color:var(--red);margin-left:2px;}
-  .field input,.field select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;color:var(--text-dark);background:#fafcfb;transition:border-color 0.2s,box-shadow 0.2s;outline:none;}
-  .field input:focus,.field select:focus{border-color:var(--green-light);box-shadow:0 0 0 3px rgba(82,183,136,0.15);}
-  .field input.error{border-color:var(--red);}
-  .field .err-msg{font-size:0.78rem;color:var(--red);margin-top:4px;display:none;}
-  .field.has-error .err-msg{display:block;}
-  .share-options{display:flex;gap:12px;}
-  .share-opt{flex:1;}.share-opt input[type="radio"]{display:none;}
-  .share-opt label{display:block;text-align:center;padding:12px 6px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.88rem;font-weight:600;color:var(--text-mid);background:var(--white);}
-  .share-opt input[type="radio"]:checked+label{border-color:var(--green-mid);background:#eaf5ef;color:var(--green-deep);}
-  .share-opt label .amount{display:block;font-size:0.75rem;color:var(--green-light);font-weight:500;margin-top:2px;}
-  .rules-box{background:#f4faf7;border:1px solid var(--border);border-radius:10px;padding:16px 18px;max-height:220px;overflow-y:auto;margin-bottom:16px;font-size:0.84rem;color:var(--text-mid);line-height:1.8;}
-  .rules-box p{margin-bottom:8px;}.rules-box strong{color:var(--green-deep);}
-  .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
-  .checkbox-row input[type="checkbox"]{width:18px;height:18px;margin-top:3px;accent-color:var(--green-mid);flex-shrink:0;cursor:pointer;}
-  .checkbox-row label{font-size:0.87rem;color:var(--text-mid);cursor:pointer;line-height:1.5;}
-  .checkbox-row label strong{color:var(--green-deep);}
-  .btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));color:var(--white);border:none;border-radius:10px;font-family:'Hind Siliguri',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.1s;}
-  .btn-submit:hover{opacity:0.9;}.btn-submit:active{transform:scale(0.99);}.btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
-  .success-screen{display:none;text-align:center;padding:48px 24px;background:var(--white);border:1px solid var(--border);border-radius:16px;}
-  .success-icon{font-size:3.5rem;margin-bottom:16px;}
-  .success-screen h3{font-size:1.4rem;color:var(--green-deep);margin-bottom:10px;}
-  .success-screen p{color:var(--text-mid);font-size:0.92rem;max-width:400px;margin:0 auto;}
-  .status-bar{padding:12px 16px;border-radius:8px;font-size:0.85rem;font-weight:600;margin-bottom:16px;display:none;align-items:center;gap:8px;}
-  .status-bar.loading{background:#eff6ff;color:#1d4ed8;display:flex;}
-  .status-bar.error{background:#fef2f2;color:#b91c1c;display:flex;}
-  .spinner{width:16px;height:16px;border:2px solid #93c5fd;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .footer{background:var(--green-deep);color:rgba(255,255,255,0.75);text-align:center;padding:28px 20px;font-size:0.82rem;}
-  .footer strong{color:var(--gold-light);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--gd:#1a3c2e;--gm:#2d6a4f;--gl:#52b788;--gold:#c9a84c;--golL:#f0d080;--cream:#f8f4ec;--w:#fff;--td:#1c1c1c;--tm:#3d3d3d;--bdr:#d4e6da;--red:#dc2626;}
+body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--td);line-height:1.7;}
+.tabs{display:flex;background:var(--gd);position:sticky;top:0;z-index:100;}
+.tab-btn{flex:1;padding:11px 2px;border:none;background:transparent;color:rgba(255,255,255,0.6);font-family:'Hind Siliguri',sans-serif;font-size:0.74rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;}
+.tab-btn.active{color:var(--golL);border-bottom-color:var(--gold);}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.hero{background:linear-gradient(145deg,var(--gd),var(--gm) 60%,#3a7d58);color:#fff;padding:44px 20px 36px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(201,168,76,0.18),transparent 60%);pointer-events:none;}
+.badge{display:inline-block;background:rgba(201,168,76,0.25);border:1px solid var(--gold);color:var(--golL);font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px;}
+.hero h1{font-size:clamp(1.5rem,5vw,2.3rem);font-weight:700;line-height:1.25;margin-bottom:10px;}
+.hero h1 span{color:var(--golL);}
+.hero p{font-size:0.92rem;color:rgba(255,255,255,0.82);max-width:480px;margin:0 auto 20px;}
+.hero-stats{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;}
+.stat .num{display:block;font-size:1.7rem;font-weight:700;color:var(--golL);line-height:1;}
+.stat .lbl{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:2px;}
+.container{max-width:860px;margin:0 auto;padding:32px 18px 52px;}
+.sec-title{font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--gm);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+@media(max-width:600px){.rules-grid{grid-template-columns:1fr;}}
+.rc{background:#fff;border:1px solid var(--bdr);border-radius:11px;padding:16px;}
+.rc.full{grid-column:1/-1;}.rc.gold{border-color:var(--gold);background:linear-gradient(135deg,#fffef7,#fff9e6);}
+.rc.orange{border-color:#e07b54;background:linear-gradient(135deg,#fff8f5,#fff1eb);}
+.ri{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.95rem;margin-bottom:8px;}
+.ri.g{background:#e8f5ee;}.ri.b{background:#edf4ff;}.ri.o{background:#fff3ee;}.ri.y{background:#fef9e7;}
+.rc h3{font-size:0.88rem;font-weight:700;color:var(--gd);margin-bottom:7px;}
+.rc ul{list-style:none;}
+.rc ul li{font-size:0.83rem;color:var(--tm);padding:3px 0 3px 14px;position:relative;border-bottom:1px dashed #e8ede9;}
+.rc ul li:last-child{border-bottom:none;}
+.rc ul li::before{content:'›';position:absolute;left:0;color:var(--gl);font-weight:700;}
+.rc.orange ul li::before{color:#e07b54;}.rc.gold ul li::before{color:var(--gold);}
+.timeline{position:relative;padding-left:30px;margin-bottom:24px;}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,var(--gl),var(--gold));}
+.tli{position:relative;margin-bottom:16px;}
+.tli::before{content:'';position:absolute;left:-24px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--gl);}
+.tlp{font-size:0.68rem;font-weight:700;color:var(--gm);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;}
+.tld{font-size:0.84rem;color:var(--tm);background:#fff;border:1px solid var(--bdr);border-radius:7px;padding:8px 12px;}
+.fhero{color:#fff;padding:40px 20px 32px;text-align:center;}
+.fhero h2{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:700;margin-bottom:7px;}
+.fhero h2 span{color:var(--golL);}
+.fhero p{color:rgba(255,255,255,0.78);font-size:0.9rem;max-width:440px;margin:0 auto;}
+.fw{max-width:640px;margin:0 auto;padding:28px 16px 48px;}
+.fc{background:#fff;border:1px solid var(--bdr);border-radius:13px;padding:22px 18px;margin-bottom:16px;}
+.fc h3{font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--gm);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--bdr);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:500px){.frow{grid-template-columns:1fr;}}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:0.81rem;font-weight:600;color:var(--gd);margin-bottom:4px;}
+.field label .req{color:var(--red);margin-left:2px;}
+.field input,.field select{width:100%;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:7px;font-family:'Hind Siliguri',sans-serif;font-size:0.86rem;color:var(--td);background:#fafcfb;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.field input:focus,.field select:focus{border-color:var(--gl);box-shadow:0 0 0 3px rgba(82,183,136,0.15);}
+.field input.err{border-color:var(--red);}
+.field .emsg{font-size:0.74rem;color:var(--red);margin-top:2px;display:none;}
+.field.has-err .emsg{display:block;}
+.sopts{display:flex;gap:9px;}
+.sopt{flex:1;}.sopt input[type=radio]{display:none;}
+.sopt label{display:block;text-align:center;padding:10px 3px;border:2px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:0.83rem;font-weight:600;color:var(--tm);background:#fff;transition:all 0.2s;}
+.sopt input:checked+label{border-color:var(--gm);background:#eaf5ef;color:var(--gd);}
+.sopt label .amt{display:block;font-size:0.7rem;color:var(--gl);font-weight:500;margin-top:2px;}
+.rbox{background:#f4faf7;border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;max-height:180px;overflow-y:auto;margin-bottom:12px;font-size:0.8rem;color:var(--tm);line-height:1.8;}
+.rbox p{margin-bottom:5px;}.rbox strong{color:var(--gd);}
+.crow{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;}
+.crow input[type=checkbox]{width:16px;height:16px;margin-top:3px;accent-color:var(--gm);flex-shrink:0;}
+.crow label{font-size:0.83rem;color:var(--tm);line-height:1.5;}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gm),var(--gd));color:#fff;border:none;border-radius:8px;font-family:'Hind Siliguri',sans-serif;font-size:0.93rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;}
+.btn:hover{opacity:0.9;}.btn:disabled{opacity:0.6;cursor:not-allowed;}
+.btn.gbtn{background:linear-gradient(135deg,#b8860b,#7a5c00);}
+.btn.rbtn{background:linear-gradient(135deg,#dc2626,#991b1b);}
+.btn.pbtn{background:linear-gradient(135deg,#7c3aed,#4c1d95);}
+.btn.sbtn{background:#6b7280;}
+.sbar{padding:10px 13px;border-radius:7px;font-size:0.81rem;font-weight:600;margin-bottom:12px;display:none;align-items:center;gap:7px;}
+.sbar.loading{background:#eff6ff;color:#1d4ed8;display:flex;}
+.sbar.error{background:#fef2f2;color:#b91c1c;display:flex;}
+.sbar.success{background:#f0fdf4;color:#15803d;display:flex;}
+.spin{width:14px;height:14px;border:2px solid #93c5fd;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.done-screen{display:none;text-align:center;padding:40px 18px;background:#fff;border:1px solid var(--bdr);border-radius:13px;}
+.done-icon{font-size:3rem;margin-bottom:12px;}
+.done-screen h3{font-size:1.2rem;color:var(--gd);margin-bottom:7px;}
+.done-screen p{color:var(--tm);font-size:0.88rem;}
+.login-box{background:#fff;border:1px solid var(--bdr);border-radius:13px;padding:26px 20px;margin-bottom:16px;}
+.login-box h3{font-size:0.96rem;font-weight:700;color:var(--gd);margin-bottom:4px;}
+.login-box p{font-size:0.81rem;color:var(--tm);margin-bottom:16px;}
+.upload-area{border:2px dashed var(--bdr);border-radius:9px;padding:22px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafcfb;margin-bottom:12px;}
+.upload-area:hover{border-color:var(--gl);background:#f0fdf4;}
+.upload-area input{display:none;}
+.upload-area .uico{font-size:1.8rem;margin-bottom:6px;}
+.upload-area p{font-size:0.81rem;color:var(--tm);}
+.upload-area .fn{font-size:0.78rem;color:var(--gm);font-weight:600;margin-top:4px;}
+.minfo{background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:9px 13px;font-size:0.8rem;color:#15803d;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.lwarn{background:#fefce8;border:1px solid #fde047;border-radius:7px;padding:9px 13px;font-size:0.8rem;color:#854d0e;margin-bottom:12px;display:none;align-items:center;gap:7px;}
+/* LEDGER */
+.lhero{background:linear-gradient(145deg,#1a2e4a,#1e3a6e);color:#fff;padding:40px 20px 32px;text-align:center;}
+.lhero h2{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:700;margin-bottom:7px;}
+.lhero h2 span{color:var(--golL);}
+.lhero p{color:rgba(255,255,255,0.78);font-size:0.88rem;max-width:440px;margin:0 auto;}
+.lw{max-width:860px;margin:0 auto;padding:24px 16px 48px;}
+.scards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:500px){.scards{grid-template-columns:1fr 1fr;}}
+.scard{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 12px;text-align:center;}
+.scard .sv{font-size:1.5rem;font-weight:700;line-height:1;margin-bottom:3px;}
+.scard .sl{font-size:0.71rem;color:var(--tm);}
+.scard.grn .sv{color:#15803d;}.scard.rd .sv{color:#b91c1c;}.scard.bl .sv{color:#1d4ed8;}.scard.gld .sv{color:#92400e;}
+.ptw{background:#fff;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.ptw table{width:100%;border-collapse:collapse;}
+.ptw thead{background:var(--gd);color:#fff;}
+.ptw thead th{padding:9px 10px;font-size:0.76rem;font-weight:600;text-align:left;}
+.ptw tbody tr{border-bottom:1px solid var(--bdr);}
+.ptw tbody tr:last-child{border-bottom:none;}
+.ptw tbody tr:nth-child(even){background:#f8fbf9;}
+.ptw tbody td{padding:8px 10px;font-size:0.8rem;color:var(--tm);}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+.tag.ok{background:#dcfce7;color:#15803d;}
+.tag.late{background:#fef9c3;color:#854d0e;}
+.tag.miss{background:#fee2e2;color:#b91c1c;}
+.cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
+.cal-m{background:#fff;border:1px solid var(--bdr);border-radius:9px;padding:11px;text-align:center;}
+.cal-m .cmn{font-size:0.76rem;font-weight:700;color:var(--gd);margin-bottom:7px;}
+.cal-m .cmb{height:5px;border-radius:3px;background:#e8f5ee;margin-bottom:5px;overflow:hidden;}
+.cal-m .cmf{height:100%;background:var(--gl);border-radius:3px;}
+.cal-m .cms{font-size:0.69rem;color:var(--tm);}
+/* ADMIN */
+.ahero{background:linear-gradient(145deg,#1e1e2e,#2d1b4e);color:#fff;padding:40px 20px 32px;text-align:center;}
+.ahero h2{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:700;margin-bottom:7px;}
+.ahero h2 span{color:#ddd6fe;}
+.ahero p{color:rgba(255,255,255,0.78);font-size:0.88rem;max-width:440px;margin:0 auto;}
+.admin-box{background:#fff;border:1px solid var(--bdr);border-radius:13px;padding:24px 20px;max-width:380px;margin:0 auto 16px;}
+.admin-box h3{font-size:0.95rem;font-weight:700;color:var(--gd);margin-bottom:4px;}
+.admin-box p{font-size:0.81rem;color:var(--tm);margin-bottom:16px;}
+.amw{max-width:900px;margin:0 auto;padding:24px 16px 48px;}
+.big-table-wrap{overflow-x:auto;}
+.big-table-wrap table{width:100%;min-width:600px;border-collapse:collapse;}
+.big-table-wrap thead{background:var(--gd);color:#fff;}
+.big-table-wrap thead th{padding:9px 10px;font-size:0.74rem;font-weight:600;text-align:left;white-space:nowrap;}
+.big-table-wrap tbody tr{border-bottom:1px solid var(--bdr);}
+.big-table-wrap tbody tr:nth-child(even){background:#f5fbf7;}
+.big-table-wrap tbody td{padding:8px 10px;font-size:0.78rem;color:var(--tm);white-space:nowrap;}
+.pass-change-box{background:#fff;border:1px solid var(--bdr);border-radius:13px;padding:20px 18px;margin-bottom:16px;}
+.pass-change-box h3{font-size:0.9rem;font-weight:700;color:var(--gd);margin-bottom:4px;}
+.pass-change-box p{font-size:0.8rem;color:var(--tm);margin-bottom:14px;}
+.lbox{text-align:center;padding:36px 18px;color:var(--tm);font-size:0.86rem;}
+.footer{background:var(--gd);color:rgba(255,255,255,0.75);text-align:center;padding:20px 16px;font-size:0.77rem;}
+.footer strong{color:var(--golL);}
 </style>
 </head>
 <body>
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('rules')">📋 নিয়মাবলি</button>
-  <button class="tab-btn" onclick="showTab('form')">✍️ সদস্যপদ ফর্ম</button>
+  <button class="tab-btn" onclick="showTab('reg')">✍️ সদস্য ফর্ম</button>
+  <button class="tab-btn" onclick="showTab('pay')">💳 মাসিক জমা</button>
+  <button class="tab-btn" onclick="showTab('ledger')">📊 জমার হিসাব</button>
+  <button class="tab-btn" onclick="showTab('admin')">🔐 অ্যাডমিন</button>
 </div>
 
+<!-- TAB 1: RULES -->
 <div id="tab-rules" class="tab-panel active">
   <div class="hero">
     <div class="badge">SSC ব্যাচ ২০১৭</div>
@@ -113,104 +175,219 @@
     </div>
   </div>
   <div class="container">
-    <div class="section-title">মূল নিয়মাবলি</div>
+    <div class="sec-title">মূল নিয়মাবলি</div>
     <div class="rules-grid">
-      <div class="rule-card"><div class="rule-icon icon-green">💰</div><h3>মাসিক সঞ্চয় ও শেয়ার</h3><ul><li>প্রতি শেয়ার = ৳১,০০০/মাস</li><li>সর্বোচ্চ ৩টি শেয়ার নেওয়া যাবে</li><li>প্রতি মাসের <strong>১০ তারিখের</strong> মধ্যে জমা বাধ্যতামূলক</li><li>দেরি হলে <strong>আগেই গ্রুপে জানাতে হবে</strong></li></ul></div>
-      <div class="rule-card"><div class="rule-icon icon-blue">📈</div><h3>বিনিয়োগ পরিকল্পনা</h3><ul><li>প্রতি ৬ মাসে জমা অর্থ বিনিয়োগ করা হবে</li><li>নিরাপদ ও লাভজনক খাতে বিনিয়োগ</li><li>লাভ মূল তহবিলের সাথে যুক্ত হবে</li><li>সকল সিদ্ধান্ত সম্মিলিতভাবে নেওয়া হবে</li></ul></div>
-      <div class="rule-card highlight"><div class="rule-icon icon-gold">🏡</div><h3>দীর্ঘমেয়াদি লক্ষ্য</h3><ul><li>৪ বছর পর উপযুক্ত জমি ক্রয়</li><li>সুযোগ পেলে মেয়াদের আগেও বিনিয়োগ সম্ভব</li><li>ভালো অবস্থানের সম্পদ অর্জনই মূল লক্ষ্য</li><li>লক্ষ্য পরিবর্তনে সকলের সম্মতি প্রয়োজন</li></ul></div>
-      <div class="rule-card"><div class="rule-icon icon-green">🤝</div><h3>শেয়ার হস্তান্তর</h3><ul><li>বিক্রির ইচ্ছায় <strong>৩ মাস আগে</strong> নোটিশ দিতে হবে</li><li>শেয়ার শুধু বর্তমান সদস্যদের কাছে বিক্রয়যোগ্য</li><li>৩ শেয়ারধারী অতিরিক্ত শেয়ার কিনতে পারবেন না</li><li>বাইরের কারো কাছে শেয়ার বিক্রি নিষিদ্ধ</li></ul></div>
-      <div class="rule-card alert"><div class="rule-icon icon-orange">🏥</div><h3>জরুরি সহায়তা তহবিল</h3><ul><li>চিকিৎসাজনিত জরুরি প্রয়োজনে সহায়তা পাওয়া যাবে</li><li>সদস্য বা পরিবারের জন্য প্রযোজ্য</li><li>গৃহীত অর্থ <strong>সর্বোচ্চ ৩ মাসে</strong> ফেরত দিতে হবে</li><li>গ্রুপের অনুমোদন সাপেক্ষে প্রদান করা হবে</li></ul></div>
-      <div class="rule-card"><div class="rule-icon icon-green">⚖️</div><h3>যৌথ সিদ্ধান্ত ও স্বচ্ছতা</h3><ul><li>সকল আর্থিক হিসাব নিয়মিত প্রকাশ করা হবে</li><li>গুরুত্বপূর্ণ সিদ্ধান্তে সবার মতামত নেওয়া হবে</li><li>টানা ৩ মাস নিষ্ক্রিয় সদস্যের বিষয়ে আলোচনা হবে</li><li>অডিট রিপোর্ট প্রতি ৬ মাসে শেয়ার করা হবে</li></ul></div>
-      <div class="rule-card full"><div class="rule-icon icon-blue">✨</div><h3>নতুন প্রস্তাবিত নিয়মসমূহ</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;"><ul><li>নতুন সদস্য যোগে <strong>৭৫% সদস্যের সম্মতি</strong> প্রয়োজন</li><li>প্রতি বছর একবার <strong>বার্ষিক সভা</strong> বাধ্যতামূলক</li><li>যেকোনো বিনিয়োগে সর্বনিম্ন <strong>৬০% সম্মতি</strong> দরকার</li><li>প্ল্যাটফর্ম ভাঙতে হলে <strong>৯০% সদস্যের মত</strong> লাগবে</li></ul><ul><li>মাসিক হিসাবের <strong>স্ক্রিনশট গ্রুপে</strong> পোস্ট করতে হবে</li><li>একজন নিরপেক্ষ <strong>হিসাবরক্ষক</strong> নিয়োগ দেওয়া হবে</li><li>বিনিয়োগ লোকসানে <strong>সবাই সমান ভাগ</strong> বহন করবেন</li><li>সদস্যপদ বাতিলে <strong>জমা অর্থ ফেরত</strong> দেওয়া হবে</li></ul></div></div>
+      <div class="rc"><div class="ri g">💰</div><h3>মাসিক সঞ্চয় ও শেয়ার</h3><ul><li>প্রতি শেয়ার = ৳১,০০০/মাস</li><li>সর্বোচ্চ ৩টি শেয়ার নেওয়া যাবে</li><li>প্রতি মাসের <strong>১০ তারিখের</strong> মধ্যে জমা বাধ্যতামূলক</li><li>দেরি হলে আগেই গ্রুপে জানাতে হবে</li></ul></div>
+      <div class="rc"><div class="ri b">📈</div><h3>বিনিয়োগ পরিকল্পনা</h3><ul><li>প্রতি ৬ মাসে জমা অর্থ বিনিয়োগ করা হবে</li><li>নিরাপদ ও লাভজনক খাতে বিনিয়োগ</li><li>লাভ মূল তহবিলের সাথে যুক্ত হবে</li><li>সকল সিদ্ধান্ত সম্মিলিতভাবে নেওয়া হবে</li></ul></div>
+      <div class="rc gold"><div class="ri y">🏡</div><h3>দীর্ঘমেয়াদি লক্ষ্য</h3><ul><li>৪ বছর পর উপযুক্ত জমি ক্রয়</li><li>সুযোগ পেলে মেয়াদের আগেও বিনিয়োগ সম্ভব</li><li>ভালো অবস্থানের সম্পদ অর্জনই মূল লক্ষ্য</li><li>লক্ষ্য পরিবর্তনে সকলের সম্মতি প্রয়োজন</li></ul></div>
+      <div class="rc"><div class="ri g">🤝</div><h3>শেয়ার হস্তান্তর</h3><ul><li>বিক্রির ইচ্ছায় ৩ মাস আগে নোটিশ দিতে হবে</li><li>শুধু বর্তমান সদস্যদের কাছে বিক্রয়যোগ্য</li><li>৩ শেয়ারধারী অতিরিক্ত শেয়ার কিনতে পারবেন না</li><li>বাইরের কাউকে শেয়ার বিক্রি নিষিদ্ধ</li></ul></div>
+      <div class="rc orange"><div class="ri o">🏥</div><h3>জরুরি সহায়তা তহবিল</h3><ul><li>চিকিৎসাজনিত জরুরি প্রয়োজনে সহায়তা পাওয়া যাবে</li><li>সদস্য বা পরিবারের জন্য প্রযোজ্য</li><li>গৃহীত অর্থ সর্বোচ্চ ৩ মাসে ফেরত দিতে হবে</li><li>গ্রুপের অনুমোদন সাপেক্ষে প্রদান করা হবে</li></ul></div>
+      <div class="rc"><div class="ri g">⚖️</div><h3>যৌথ সিদ্ধান্ত ও স্বচ্ছতা</h3><ul><li>সকল আর্থিক হিসাব নিয়মিত প্রকাশ করা হবে</li><li>গুরুত্বপূর্ণ সিদ্ধান্তে সবার মতামত নেওয়া হবে</li><li>টানা ৩ মাস নিষ্ক্রিয় সদস্যের বিষয়ে আলোচনা হবে</li><li>অডিট রিপোর্ট প্রতি ৬ মাসে শেয়ার করা হবে</li></ul></div>
+      <div class="rc full"><div class="ri b">✨</div><h3>নতুন প্রস্তাবিত নিয়মসমূহ</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px;"><ul><li>নতুন সদস্য যোগে <strong>৭৫% সম্মতি</strong> প্রয়োজন</li><li>প্রতি বছর একবার <strong>বার্ষিক সভা</strong> বাধ্যতামূলক</li><li>যেকোনো বিনিয়োগে <strong>৬০% সম্মতি</strong> দরকার</li><li>প্ল্যাটফর্ম ভাঙতে <strong>৯০% সদস্যের মত</strong> লাগবে</li></ul><ul><li>মাসিক হিসাবের <strong>স্ক্রিনশট গ্রুপে</strong> পোস্ট হবে</li><li>একজন নিরপেক্ষ <strong>হিসাবরক্ষক</strong> নিয়োগ হবে</li><li>লোকসানে <strong>সবাই সমান ভাগ</strong> বহন করবেন</li><li>সদস্যপদ বাতিলে <strong>জমা অর্থ ফেরত</strong> দেওয়া হবে</li></ul></div></div>
     </div>
-    <div class="section-title">প্ল্যাটফর্মের রোডম্যাপ</div>
+    <div class="sec-title">রোডম্যাপ</div>
     <div class="timeline">
-      <div class="tl-item"><div class="tl-period">মাস ১ – ৬</div><div class="tl-desc">সদস্য নিবন্ধন, শেয়ার বিতরণ ও প্রথম তহবিল সংগ্রহ। ব্যাংক হিসাব খোলা ও হিসাবরক্ষক নিয়োগ।</div></div>
-      <div class="tl-item"><div class="tl-period">মাস ৬ (প্রথম চক্র)</div><div class="tl-desc">প্রথম বিনিয়োগ সিদ্ধান্ত গ্রহণ। সম্ভাব্য খাত পর্যালোচনা ও সম্মিলিত ভোটে বিনিয়োগ।</div></div>
-      <div class="tl-item"><div class="tl-period">প্রতি ৬ মাস অন্তর</div><div class="tl-desc">তহবিল পর্যালোচনা, লাভ-লোকসান হিসাব, পরবর্তী বিনিয়োগ পরিকল্পনা ও সদস্য সভা।</div></div>
-      <div class="tl-item"><div class="tl-period">বছর ২ – ৩</div><div class="tl-desc">তহবিল পরিপক্কতা। জমি বা সম্পদ ক্রয়ের সম্ভাবনা যাচাই শুরু।</div></div>
-      <div class="tl-item"><div class="tl-period">বছর ৪ (লক্ষ্যমাত্রা)</div><div class="tl-desc">জমি বা সম্পদ ক্রয়। প্ল্যাটফর্মের ভবিষ্যৎ নির্ধারণ।</div></div>
+      <div class="tli"><div class="tlp">মাস ১–৬</div><div class="tld">সদস্য নিবন্ধন, শেয়ার বিতরণ ও প্রথম তহবিল সংগ্রহ।</div></div>
+      <div class="tli"><div class="tlp">মাস ৬</div><div class="tld">প্রথম বিনিয়োগ সিদ্ধান্ত গ্রহণ ও সম্মিলিত ভোটে বিনিয়োগ।</div></div>
+      <div class="tli"><div class="tlp">প্রতি ৬ মাস</div><div class="tld">তহবিল পর্যালোচনা, লাভ-লোকসান হিসাব ও সদস্য সভা।</div></div>
+      <div class="tli"><div class="tlp">বছর ২–৩</div><div class="tld">জমি বা সম্পদ ক্রয়ের সম্ভাবনা যাচাই শুরু।</div></div>
+      <div class="tli"><div class="tlp">বছর ৪</div><div class="tld">জমি বা সম্পদ ক্রয়। প্ল্যাটফর্মের ভবিষ্যৎ নির্ধারণ।</div></div>
     </div>
-    <div class="section-title">আচরণবিধি</div>
-    <div class="rules-grid">
-      <div class="rule-card"><div class="rule-icon icon-green">🌿</div><h3>শৃঙ্খলা</h3><ul><li>পারস্পরিক সম্মান ও সৌহার্দ্য বজায় রাখতে হবে</li><li>অপমানজনক মন্তব্য সম্পূর্ণ নিষিদ্ধ</li><li>মতভেদ শান্তিপূর্ণভাবে সমাধান করতে হবে</li></ul></div>
-      <div class="rule-card"><div class="rule-icon icon-blue">📋</div><h3>যোগাযোগ</h3><ul><li>গুরুত্বপূর্ণ বিষয় সর্বদা গ্রুপে জানাতে হবে</li><li>ব্যক্তিগত সমস্যা আগেভাগে শেয়ার করুন</li><li>সভায় উপস্থিতি নিশ্চিত করার চেষ্টা করুন</li></ul></div>
-    </div>
-    <div style="text-align:center;margin-top:32px;">
-      <button class="btn-submit" style="max-width:320px;" onclick="showTab('form')">✍️ সদস্যপদ ফর্ম পূরণ করুন →</button>
-    </div>
+    <div style="text-align:center;margin-top:20px;"><button class="btn" style="max-width:280px;" onclick="showTab('reg')">✍️ সদস্যপদ ফর্ম পূরণ করুন →</button></div>
   </div>
 </div>
 
-<div id="tab-form" class="tab-panel">
-  <div class="form-hero">
+<!-- TAB 2: REGISTRATION -->
+<div id="tab-reg" class="tab-panel">
+  <div class="fhero" style="background:linear-gradient(145deg,var(--gd),#1e5c3a);">
     <div class="badge">Dream Builders 17</div>
     <h2><span>সদস্যপদ</span> নিবন্ধন ফর্ম</h2>
     <p>নিচের তথ্যগুলো সঠিকভাবে পূরণ করুন এবং সকল শর্ত মেনে জমা দিন।</p>
   </div>
-  <div class="form-container">
-    <div id="statusBar" class="status-bar">
-      <div class="spinner" id="spinner"></div>
-      <span id="statusMsg"></span>
-    </div>
-    <div id="memberForm">
-      <div class="form-card">
+  <div class="fw">
+    <div id="reg-sb" class="sbar"><div class="spin"></div><span id="reg-sm"></span></div>
+    <div id="reg-form">
+      <div class="fc">
         <h3>👤 ব্যক্তিগত তথ্য</h3>
-        <div class="form-row">
-          <div class="field" id="f-name"><label>পূর্ণ নাম <span class="req">*</span></label><input type="text" id="inp-name" placeholder="আপনার পূর্ণ নাম"><div class="err-msg">নাম আবশ্যক</div></div>
-          <div class="field" id="f-phone"><label>মোবাইল নম্বর <span class="req">*</span></label><input type="tel" id="inp-phone" placeholder="01XXXXXXXXX"><div class="err-msg">সঠিক মোবাইল নম্বর দিন</div></div>
+        <div class="frow">
+          <div class="field" id="rf-nm"><label>পূর্ণ নাম <span class="req">*</span></label><input type="text" id="r-nm" placeholder="আপনার পূর্ণ নাম"><div class="emsg">নাম আবশ্যক</div></div>
+          <div class="field" id="rf-ph"><label>মোবাইল নম্বর <span class="req">*</span></label><input type="tel" id="r-ph" placeholder="01XXXXXXXXX"><div class="emsg">সঠিক মোবাইল নম্বর দিন</div></div>
         </div>
-        <div class="form-row">
-          <div class="field" id="f-email"><label>ইমেইল <span class="req">*</span></label><input type="email" id="inp-email" placeholder="example@gmail.com"><div class="err-msg">সঠিক ইমেইল দিন</div></div>
-          <div class="field" id="f-nid"><label>NID / জন্ম সনদ নম্বর <span class="req">*</span></label><input type="text" id="inp-nid" placeholder="NID বা জন্ম সনদ নম্বর"><div class="err-msg">এই তথ্য আবশ্যক</div></div>
+        <div class="frow">
+          <div class="field" id="rf-em"><label>ইমেইল <span class="req">*</span></label><input type="email" id="r-em" placeholder="example@gmail.com"><div class="emsg">সঠিক ইমেইল দিন</div></div>
+          <div class="field" id="rf-ni"><label>NID / জন্ম সনদ নম্বর <span class="req">*</span></label><input type="text" id="r-ni" placeholder="NID বা জন্ম সনদ নম্বর"><div class="emsg">এই তথ্য আবশ্যক</div></div>
         </div>
-        <div class="field" id="f-address"><label>বর্তমান ঠিকানা <span class="req">*</span></label><input type="text" id="inp-address" placeholder="গ্রাম/শহর, জেলা"><div class="err-msg">ঠিকানা আবশ্যক</div></div>
+        <div class="field" id="rf-ad"><label>বর্তমান ঠিকানা <span class="req">*</span></label><input type="text" id="r-ad" placeholder="গ্রাম/শহর, জেলা"><div class="emsg">ঠিকানা আবশ্যক</div></div>
       </div>
-      <div class="form-card">
+      <div class="fc">
         <h3>📊 শেয়ার নির্বাচন</h3>
-        <div class="field" id="f-shares">
-          <label>কতটি শেয়ার নিতে চান? <span class="req">*</span></label>
-          <div class="share-options">
-            <div class="share-opt"><input type="radio" name="shares" id="s1" value="1"><label for="s1">১ শেয়ার<span class="amount">৳১,০০০/মাস</span></label></div>
-            <div class="share-opt"><input type="radio" name="shares" id="s2" value="2"><label for="s2">২ শেয়ার<span class="amount">৳২,০০০/মাস</span></label></div>
-            <div class="share-opt"><input type="radio" name="shares" id="s3" value="3"><label for="s3">৩ শেয়ার<span class="amount">৳৩,০০০/মাস</span></label></div>
+        <div class="field" id="rf-sh"><label>কতটি শেয়ার নিতে চান? <span class="req">*</span></label>
+          <div class="sopts">
+            <div class="sopt"><input type="radio" name="rs" id="rs1" value="1"><label for="rs1">১ শেয়ার<span class="amt">৳১,০০০/মাস</span></label></div>
+            <div class="sopt"><input type="radio" name="rs" id="rs2" value="2"><label for="rs2">২ শেয়ার<span class="amt">৳২,০০০/মাস</span></label></div>
+            <div class="sopt"><input type="radio" name="rs" id="rs3" value="3"><label for="rs3">৩ শেয়ার<span class="amt">৳৩,০০০/মাস</span></label></div>
           </div>
-          <div class="err-msg" id="shares-err" style="display:none;">শেয়ার সংখ্যা নির্বাচন করুন</div>
+          <div class="emsg" id="rs-err" style="display:none;">শেয়ার সংখ্যা নির্বাচন করুন</div>
         </div>
-        <div class="field">
-          <label>পেমেন্ট পদ্ধতি পছন্দ</label>
-          <select id="inp-payment">
-            <option value="">-- নির্বাচন করুন --</option>
-            <option>বিকাশ</option><option>নগদ</option><option>রকেট</option>
-            <option>ব্যাংক ট্রান্সফার</option><option>নগদ হাতে</option>
-          </select>
-        </div>
+        <div class="field"><label>পেমেন্ট পদ্ধতি পছন্দ</label><select id="r-py"><option value="">-- নির্বাচন করুন --</option><option>বিকাশ</option><option>নগদ</option><option>রকেট</option><option>ব্যাংক ট্রান্সফার</option><option>নগদ হাতে</option></select></div>
       </div>
-      <div class="form-card">
+      <div class="fc">
         <h3>📜 শর্তাবলি ও সম্মতি</h3>
-        <p style="font-size:0.85rem;color:#6b7280;margin-bottom:12px;">নিচের শর্তগুলো মনোযোগ দিয়ে পড়ুন এবং সম্মত হলে চেকবক্সে টিক দিন।</p>
-        <div class="rules-box">
-          <p><strong>১. মাসিক সঞ্চয়:</strong> প্রতি মাসের ১০ তারিখের মধ্যে শেয়ার অনুযায়ী টাকা জমা দিতে হবে।</p>
-          <p><strong>২. শেয়ার সীমা:</strong> একজন সদস্য সর্বোচ্চ ৩টি শেয়ার নিতে পারবেন। প্রতিটি শেয়ারের মূল্য ৳১,০০০/মাস।</p>
-          <p><strong>৩. বিনিয়োগ:</strong> প্রতি ৬ মাস অন্তর জমাকৃত অর্থ লাভজনক খাতে বিনিয়োগ করা হবে।</p>
-          <p><strong>৪. দীর্ঘমেয়াদি লক্ষ্য:</strong> ৪ বছর পর উপযুক্ত জমি বা সম্পদ ক্রয় করা হবে।</p>
-          <p><strong>৫. শেয়ার বিক্রয়:</strong> শেয়ার বিক্রি করতে হলে কমপক্ষে ৩ মাস আগে গ্রুপে জানাতে হবে।</p>
-          <p><strong>৬. জরুরি সহায়তা:</strong> চিকিৎসাজনিত জরুরি প্রয়োজনে তহবিল থেকে সহায়তা নেওয়া যাবে, সর্বোচ্চ ৩ মাসে ফেরত দিতে হবে।</p>
-          <p><strong>৭. আচরণবিধি:</strong> পারস্পরিক সম্মান বজায় রাখতে হবে।</p>
-          <p><strong>৮. স্বচ্ছতা:</strong> সকল আর্থিক লেনদেন নিয়মিত গ্রুপে প্রকাশ করা হবে।</p>
+        <div class="rbox">
+          <p><strong>১.</strong> প্রতি মাসের ১০ তারিখের মধ্যে টাকা জমা দিতে হবে।</p>
+          <p><strong>২.</strong> সর্বোচ্চ ৩টি শেয়ার নেওয়া যাবে। প্রতিটি শেয়ার ৳১,০০০/মাস।</p>
+          <p><strong>৩.</strong> প্রতি ৬ মাস অন্তর জমাকৃত অর্থ লাভজনক খাতে বিনিয়োগ করা হবে।</p>
+          <p><strong>৪.</strong> ৪ বছর পর উপযুক্ত জমি বা সম্পদ ক্রয় করা হবে।</p>
+          <p><strong>৫.</strong> শেয়ার বিক্রিতে ৩ মাস আগে নোটিশ দিতে হবে।</p>
+          <p><strong>৬.</strong> জরুরি সহায়তা সর্বোচ্চ ৩ মাসে ফেরত দিতে হবে।</p>
+          <p><strong>৭.</strong> পারস্পরিক সম্মান বজায় রাখতে হবে।</p>
+          <p><strong>৮.</strong> সকল আর্থিক লেনদেন গ্রুপে প্রকাশ করা হবে।</p>
         </div>
-        <div class="checkbox-row"><input type="checkbox" id="chk1"><label for="chk1">আমি উপরের সকল <strong>নিয়মাবলি ও শর্তাবলি</strong> মেনে চলতে সম্মত।</label></div>
-        <div class="checkbox-row"><input type="checkbox" id="chk2"><label for="chk2">আমি নির্ধারিত সময়ে <strong>নিয়মিত মাসিক সঞ্চয়</strong> জমা দেওয়ার প্রতিশ্রুতি দিচ্ছি।</label></div>
-        <div class="checkbox-row"><input type="checkbox" id="chk3"><label for="chk3">আমি স্বেচ্ছায় এই <strong>দীর্ঘমেয়াদি প্ল্যাটফর্মে</strong> যোগ দিচ্ছি।</label></div>
-        <div id="chk-err" style="color:var(--red);font-size:0.82rem;margin-top:4px;display:none;">সকল শর্তে সম্মত হওয়া আবশ্যক</div>
+        <div class="crow"><input type="checkbox" id="rc1"><label for="rc1">আমি সকল <strong>নিয়মাবলি ও শর্তাবলি</strong> মেনে চলতে সম্মত।</label></div>
+        <div class="crow"><input type="checkbox" id="rc2"><label for="rc2">আমি নির্ধারিত সময়ে <strong>নিয়মিত মাসিক সঞ্চয়</strong> জমা দেওয়ার প্রতিশ্রুতি দিচ্ছি।</label></div>
+        <div class="crow"><input type="checkbox" id="rc3"><label for="rc3">আমি স্বেচ্ছায় এই <strong>দীর্ঘমেয়াদি প্ল্যাটফর্মে</strong> যোগ দিচ্ছি।</label></div>
+        <div id="rc-err" style="color:var(--red);font-size:0.78rem;margin-top:3px;display:none;">সকল শর্তে সম্মত হওয়া আবশ্যক</div>
       </div>
-      <button class="btn-submit" id="submitBtn" onclick="submitForm()">✅ সদস্যপদ ফর্ম জমা করুন</button>
+      <button class="btn" id="reg-btn" onclick="submitReg()">✅ সদস্যপদ ফর্ম জমা করুন</button>
     </div>
-    <div class="success-screen" id="successScreen">
-      <div class="success-icon">🎉</div>
-      <h3>স্বাগতম, Dream Builders 17-তে!</h3>
-      <p>আপনার তথ্য সফলভাবে Google Sheets-এ সংরক্ষিত হয়েছে।</p>
-      <div style="margin-top:20px;padding:14px;background:#f4faf7;border-radius:8px;font-size:0.85rem;color:#2d6a4f;">ধন্যবাদ! বিশ্বাস · সহযোগিতা · সমৃদ্ধি 🌿</div>
+    <div class="done-screen" id="reg-done">
+      <div class="done-icon">🎉</div><h3>স্বাগতম, Dream Builders 17-তে!</h3>
+      <p>আপনার তথ্য সফলভাবে সংরক্ষিত হয়েছে।</p>
+      <div style="margin-top:14px;padding:10px;background:#f4faf7;border-radius:7px;font-size:0.8rem;color:#2d6a4f;">ধন্যবাদ! বিশ্বাস · সহযোগিতা · সমৃদ্ধি 🌿</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: PAYMENT -->
+<div id="tab-pay" class="tab-panel">
+  <div class="fhero" style="background:linear-gradient(145deg,#1a3c2e,#7a5c00);">
+    <div class="badge" style="background:rgba(201,168,76,0.3);">মাসিক জমা</div>
+    <h2>💳 <span>মাসিক</span> জমা প্রদান</h2>
+    <p>আপনার পরিচয় যাচাই করুন এবং রিসিভ কপি আপলোড করুন।</p>
+  </div>
+  <div class="fw">
+    <div id="pay-login">
+      <div class="login-box">
+        <h3>🔐 পরিচয় যাচাই করুন</h3>
+        <p>আপনার নিবন্ধিত তথ্য দিয়ে প্রবেশ করুন।</p>
+        <div id="lsb" class="sbar"><div class="spin"></div><span id="lsm"></span></div>
+        <div class="field"><label>পূর্ণ নাম <span class="req">*</span></label><input type="text" id="l-nm" placeholder="নিবন্ধিত নাম"></div>
+        <div class="field"><label>মোবাইল নম্বর অথবা ইমেইল <span class="req">*</span></label><input type="text" id="l-ct" placeholder="01XXXXXXXXX অথবা email@gmail.com"></div>
+        <button class="btn" id="l-btn" onclick="verifyMember()" style="margin-top:6px;">🔍 পরিচয় যাচাই করুন</button>
+      </div>
+    </div>
+    <div id="pay-up" style="display:none;">
+      <div class="fc"><h3>👤 সদস্যের তথ্য</h3><div id="m-inf" style="background:#f4faf7;border-radius:7px;padding:11px;font-size:0.85rem;color:var(--tm);line-height:2;"></div></div>
+      <div class="fc">
+        <h3>📅 জমার মাস নির্বাচন</h3>
+        <div class="minfo">📆 <span id="cur-mt"></span></div>
+        <div class="lwarn" id="lwn">⚠️ <span id="lwnt"></span></div>
+        <div class="field"><label>কোন মাসের জমা? <span class="req">*</span></label><select id="p-mo"><option value="">-- মাস নির্বাচন করুন --</option></select></div>
+        <div class="field"><label>জমার পরিমাণ (টাকা)</label><input type="text" id="p-am" readonly style="background:#f0fdf4;color:#15803d;font-weight:700;"></div>
+      </div>
+      <div class="fc">
+        <h3>📎 রিসিভ কপি আপলোড</h3>
+        <p style="font-size:0.8rem;color:var(--tm);margin-bottom:11px;">ব্যাংক রিসিভ বা মোবাইল ব্যাংকিং রিসিভ কপির ছবি আপলোড করুন। রিসিভে <strong>তারিখ দৃশ্যমান</strong> থাকতে হবে।</p>
+        <div class="upload-area" onclick="document.getElementById('rfile').click()">
+          <input type="file" id="rfile" accept="image/*,.pdf" onchange="handleFile(this)">
+          <div class="uico">📄</div><p>এখানে ক্লিক করে ফাইল বাছুন</p>
+          <p style="font-size:0.72rem;color:#9ca3af;margin-top:3px;">JPG, PNG, PDF গ্রহণযোগ্য</p>
+          <div class="fn" id="fnm"></div>
+        </div>
+        <div id="pvw" style="display:none;margin-bottom:11px;"><img id="ipv" style="max-width:100%;border-radius:7px;border:1px solid var(--bdr);" alt="Receipt"></div>
+      </div>
+      <div class="fc">
+        <h3>📝 অতিরিক্ত তথ্য</h3>
+        <div class="field"><label>পেমেন্ট পদ্ধতি <span class="req">*</span></label><select id="p-mt"><option value="">-- নির্বাচন করুন --</option><option>বিকাশ</option><option>নগদ</option><option>রকেট</option><option>ব্যাংক ট্রান্সফার</option><option>নগদ হাতে</option></select></div>
+        <div class="field"><label>ট্রানজেকশন নম্বর (যদি থাকে)</label><input type="text" id="p-tx" placeholder="TXN নম্বর"></div>
+        <div class="field"><label>মন্তব্য (যদি থাকে)</label><input type="text" id="p-nt" placeholder="যেকোনো তথ্য লিখুন"></div>
+      </div>
+      <div id="pay-sb" class="sbar"><div class="spin"></div><span id="pay-sm"></span></div>
+      <button class="btn gbtn" id="pay-btn" onclick="submitPayment()">💳 জমা নিশ্চিত করুন</button>
+    </div>
+    <div class="done-screen" id="pay-done">
+      <div class="done-icon">✅</div><h3 id="pd-t">জমা সফলভাবে গৃহীত হয়েছে!</h3>
+      <p id="pd-m">আপনার রিসিভ কপি এবং তথ্য সংরক্ষিত হয়েছে।</p>
+      <div style="margin-top:14px;padding:10px;background:#f4faf7;border-radius:7px;font-size:0.8rem;color:#2d6a4f;">ধন্যবাদ!</div>
+      <button class="btn" style="margin-top:12px;max-width:170px;" onclick="resetPay()">🔄 নতুন জমা</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: LEDGER (নিজের হিসাব) -->
+<div id="tab-ledger" class="tab-panel">
+  <div class="lhero">
+    <div class="badge" style="background:rgba(29,78,216,0.3);border-color:#93c5fd;color:#bfdbfe;">জমার হিসাব</div>
+    <h2>📊 আমার <span>জমার</span> হিসাব</h2>
+    <p>আপনার নিজের জমার ইতিহাস দেখুন।</p>
+  </div>
+  <div class="lw">
+    <div id="led-login">
+      <div class="login-box">
+        <h3>🔐 পরিচয় যাচাই করুন</h3>
+        <p>শুধুমাত্র আপনার নিজের হিসাব দেখতে পারবেন।</p>
+        <div id="llsb" class="sbar"><div class="spin"></div><span id="llsm"></span></div>
+        <div class="field"><label>পূর্ণ নাম <span class="req">*</span></label><input type="text" id="ll-nm" placeholder="নিবন্ধিত নাম"></div>
+        <div class="field"><label>মোবাইল নম্বর অথবা ইমেইল <span class="req">*</span></label><input type="text" id="ll-ct" placeholder="01XXXXXXXXX অথবা email@gmail.com"></div>
+        <button class="btn blue-btn" id="ll-btn" onclick="ledgerLogin()" style="margin-top:6px;">📊 আমার হিসাব দেখুন</button>
+      </div>
+    </div>
+    <div id="led-content" style="display:none;">
+      <div id="led-sb" class="sbar"><div class="spin"></div><span id="led-sm"></span></div>
+      <div id="led-data"></div>
+      <button class="btn sbtn" style="max-width:180px;margin-top:12px;" onclick="ledgerLogout()">🔄 অন্য সদস্য</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: ADMIN -->
+<div id="tab-admin" class="tab-panel">
+  <div class="ahero">
+    <div class="badge" style="background:rgba(139,92,246,0.3);border-color:#a78bfa;color:#ddd6fe;">অ্যাডমিন প্যানেল</div>
+    <h2>🔐 <span>অ্যাডমিন</span> প্যানেল</h2>
+    <p>সকল সদস্যের বিস্তারিত তথ্য ও হিসাব দেখুন।</p>
+  </div>
+  <div id="adm-login-wrap">
+    <div class="fw">
+      <div class="admin-box">
+        <h3>🔑 অ্যাডমিন লগিন</h3>
+        <p>ইউজারনেম ও পাসওয়ার্ড দিয়ে প্রবেশ করুন।</p>
+        <div id="adm-sb" class="sbar"><div class="spin"></div><span id="adm-sm"></span></div>
+        <div class="field"><label>ইউজারনেম <span class="req">*</span></label><input type="text" id="adm-un" placeholder="admin1 / admin2 / admin3"></div>
+        <div class="field"><label>পাসওয়ার্ড <span class="req">*</span></label><input type="password" id="adm-pw" placeholder="পাসওয়ার্ড" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+        <button class="btn pbtn" onclick="adminLogin()">প্রবেশ করুন</button>
+      </div>
+    </div>
+  </div>
+  <div id="adm-panel" style="display:none;">
+    <div class="amw">
+      <div id="adm-lb" class="lbox">⏳ তথ্য লোড হচ্ছে...</div>
+      <div id="adm-data" style="display:none;">
+        <!-- Stats -->
+        <div class="sec-title">সামগ্রিক পরিসংখ্যান</div>
+        <div class="scards" id="adm-stats"></div>
+        <!-- Big Calendar -->
+        <div class="sec-title" style="margin-top:20px;">সকল সদস্যের মাসিক ক্যালেন্ডার</div>
+        <div id="adm-cal" style="overflow-x:auto;margin-bottom:20px;"></div>
+        <!-- Members -->
+        <div class="sec-title">নিবন্ধিত সদস্য তালিকা</div>
+        <div class="ptw" id="adm-mem" style="margin-bottom:20px;"></div>
+        <!-- Payments -->
+        <div class="sec-title">সকল জমার তালিকা</div>
+        <div class="ptw" id="adm-pay" style="margin-bottom:20px;"></div>
+        <!-- Password Change -->
+        <div class="sec-title">পাসওয়ার্ড পরিবর্তন</div>
+        <div class="pass-change-box">
+          <h3>🔑 পাসওয়ার্ড পরিবর্তন করুন</h3>
+          <p>নিজের পাসওয়ার্ড পরিবর্তন করতে পারবেন।</p>
+          <div id="pc-sb" class="sbar"><div class="spin"></div><span id="pc-sm"></span></div>
+          <div class="field"><label>বর্তমান পাসওয়ার্ড</label><input type="password" id="pc-old" placeholder="বর্তমান পাসওয়ার্ড"></div>
+          <div class="field"><label>নতুন পাসওয়ার্ড</label><input type="password" id="pc-new" placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"></div>
+          <div class="field"><label>নতুন পাসওয়ার্ড নিশ্চিত করুন</label><input type="password" id="pc-cnf" placeholder="আবার লিখুন"></div>
+          <button class="btn" style="max-width:200px;" onclick="changePassword()">পাসওয়ার্ড পরিবর্তন করুন</button>
+        </div>
+        <button class="btn sbtn" style="max-width:160px;margin-top:8px;" onclick="adminLogout()">লগআউট</button>
+      </div>
     </div>
   </div>
 </div>
@@ -218,107 +395,332 @@
 <div class="footer"><strong>Dream Builders 17 – SSC ব্যাচ ২০১৭</strong><br>বিশ্বাস · সহযোগিতা · সমৃদ্ধি</div>
 
 <script>
-  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvS09njLR4VDlx5_V8ReMcerDVMhRlQx6wth9NbXoOeY_cQZ6q43Y-g89edKtwYcBj5w/exec";
+var SURL = "https://script.google.com/macros/s/AKfycbwPtkN3vKvALyDD-grYJIRbczKdLJ0UJYxIuMvIBm1tw5S5IvNZrIjvkahw1S3GnqrQzw/exec";
+var MNS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+var curMember=null, recB64=null, admUser=null, ledMember=null;
 
-  function showTab(tab) {
-    document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.getElementById('tab-'+tab).classList.add('active');
-    document.querySelectorAll('.tab-btn')[tab==='rules'?0:1].classList.add('active');
-    window.scrollTo(0,0);
+function showTab(t){
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.tab-btn')[{rules:0,reg:1,pay:2,ledger:3,admin:4}[t]].classList.add('active');
+  window.scrollTo(0,0);
+  if(t==='pay') initPayMonths();
+}
+
+function pad(n){return n<10?'0'+n:''+n;}
+
+function xhrPost(data,ok,err){
+  var x=new XMLHttpRequest();
+  x.open('POST',SURL,true);
+  x.setRequestHeader('Content-Type','text/plain');
+  x.onreadystatechange=function(){
+    if(x.readyState===4){try{ok(JSON.parse(x.responseText));}catch(e){if(err)err(e);}}
+  };
+  x.onerror=function(){if(err)err();};
+  x.send(JSON.stringify(data));
+}
+
+function sb(bid,type,msg){
+  var b=document.getElementById(bid);
+  b.className='sbar '+type;
+  var sp=b.querySelector('.spin');
+  if(sp)sp.style.display=type==='loading'?'block':'none';
+  b.querySelector('span').textContent=msg;
+}
+
+// ── PAYMENT ──
+function initPayMonths(){
+  var now=new Date(); var cm=now.getMonth(); var cy=now.getFullYear();
+  document.getElementById('cur-mt').textContent=MNS[cm]+' '+cy+' মাসের জমা গ্রহণ চলছে';
+  var sel=document.getElementById('p-mo');
+  sel.innerHTML='<option value="">-- মাস নির্বাচন করুন --</option>';
+  // চলতি মাস + আগের ২ মাস
+  for(var i=0;i<3;i++){
+    var mi=cm-i; var yi=cy; if(mi<0){mi+=12;yi--;}
+    var val=yi+'-'+pad(mi+1);
+    var lbl=MNS[mi]+' '+yi+(i===0?' (চলতি মাস)':i===1?' (গত মাস)':' (আগের মাস)');
+    sel.innerHTML+='<option value="'+val+'">'+lbl+'</option>';
   }
+}
 
-  function setStatus(type, msg) {
-    var bar = document.getElementById('statusBar');
-    var spinner = document.getElementById('spinner');
-    bar.className = 'status-bar '+type;
-    spinner.style.display = type==='loading'?'block':'none';
-    document.getElementById('statusMsg').textContent = msg;
+document.addEventListener('change',function(e){
+  if(e.target.id==='p-mo'){
+    var val=e.target.value; if(!val||!curMember)return;
+    var sh=parseInt(curMember.shares)||1;
+    document.getElementById('p-am').value=(sh*1000)+' টাকা';
+    var now=new Date();
+    var sy=parseInt(val.split('-')[0]); var sm=parseInt(val.split('-')[1])-1;
+    // বিলম্বিত শুধু তখনই যদি আগের মাসের (চলতি নয়)
+    var lw=document.getElementById('lwn');
+    if(sm!==now.getMonth()||sy!==now.getFullYear()){
+      document.getElementById('lwnt').textContent=MNS[sm]+' '+sy+' মাসের জমা বিলম্বিত হিসেবে রেকর্ড হবে।';
+      lw.style.display='flex';
+    } else lw.style.display='none';
   }
+});
 
-  function validate() {
-    var ok = true;
-    var checks = [
-      {id:'inp-name', fid:'f-name', fn:function(v){return v.trim().length>1;}},
-      {id:'inp-phone', fid:'f-phone', fn:function(v){return /^01[3-9]\d{8}$/.test(v.trim());}},
-      {id:'inp-email', fid:'f-email', fn:function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());}},
-      {id:'inp-nid', fid:'f-nid', fn:function(v){return v.trim().length>4;}},
-      {id:'inp-address', fid:'f-address', fn:function(v){return v.trim().length>3;}}
-    ];
-    checks.forEach(function(c){
-      var el = document.getElementById(c.id);
-      var wrap = document.getElementById(c.fid);
-      if(!c.fn(el.value)){wrap.classList.add('has-error');el.classList.add('error');ok=false;}
-      else{wrap.classList.remove('has-error');el.classList.remove('error');}
-    });
-    if(!document.querySelector('input[name="shares"]:checked')){
-      document.getElementById('shares-err').style.display='block';ok=false;
-    } else {
-      document.getElementById('shares-err').style.display='none';
+function handleFile(inp){
+  var f=inp.files[0]; if(!f)return;
+  document.getElementById('fnm').textContent=f.name;
+  var rd=new FileReader();
+  rd.onload=function(e){
+    recB64=e.target.result;
+    if(f.type.startsWith('image/')){
+      document.getElementById('ipv').src=e.target.result;
+      document.getElementById('pvw').style.display='block';
     }
-    var chksOk = document.getElementById('chk1').checked && document.getElementById('chk2').checked && document.getElementById('chk3').checked;
-    if(!chksOk){document.getElementById('chk-err').style.display='block';ok=false;}
-    else{document.getElementById('chk-err').style.display='none';}
-    return ok;
-  }
+  };
+  rd.readAsDataURL(f);
+}
 
-  function submitForm() {
-    if(!validate()) return;
-    var btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    setStatus('loading','তথ্য Google Sheets-এ সংরক্ষণ হচ্ছে...');
+function verifyMember(){
+  var nm=document.getElementById('l-nm').value.trim();
+  var ct=document.getElementById('l-ct').value.trim();
+  if(!nm||!ct){sb('lsb','error','নাম এবং মোবাইল/ইমেইল আবশ্যক');return;}
+  document.getElementById('l-btn').disabled=true;
+  sb('lsb','loading','তথ্য যাচাই হচ্ছে...');
+  xhrPost({action:'verify',name:nm,contact:ct},function(r){
+    if(r.status==='found'){
+      curMember=r.member;
+      document.getElementById('m-inf').innerHTML='<strong>নাম:</strong> '+r.member.name+'<br><strong>মোবাইল:</strong> '+r.member.phone+'<br><strong>শেয়ার:</strong> '+r.member.shares+'&nbsp;&nbsp;<strong>মাসিক:</strong> '+(parseInt(r.member.shares)*1000)+' টাকা';
+      document.getElementById('pay-login').style.display='none';
+      document.getElementById('pay-up').style.display='block';
+      initPayMonths();
+    } else {
+      sb('lsb','error','❌ তথ্য মেলেনি। নিবন্ধিত নাম ও মোবাইল/ইমেইল দিন।');
+      document.getElementById('l-btn').disabled=false;
+    }
+  },function(){sb('lsb','error','সংযোগ সমস্যা।');document.getElementById('l-btn').disabled=false;});
+}
 
-    var sharesVal = document.querySelector('input[name="shares"]:checked').value;
-    var sharesNum = parseInt(sharesVal);
-    var monthlyAmt = sharesNum * 1000;
+function submitPayment(){
+  var mo=document.getElementById('p-mo').value;
+  var mt=document.getElementById('p-mt').value;
+  if(!mo){alert('মাস নির্বাচন করুন।');return;}
+  if(!mt){alert('পেমেন্ট পদ্ধতি নির্বাচন করুন।');return;}
+  if(!recB64){alert('রিসিভ কপি আপলোড করুন।');return;}
+  document.getElementById('pay-btn').disabled=true;
+  sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
+  var now=new Date();
+  var sy=parseInt(mo.split('-')[0]); var sm=parseInt(mo.split('-')[1])-1;
+  var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
+  var sh=parseInt(curMember.shares)||1;
+  var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',receipt:recB64},
+  function(){
+    document.getElementById('pay-up').style.display='none';
+    document.getElementById('pay-done').style.display='block';
+    if(isLate){document.getElementById('pd-t').textContent='জমা গৃহীত হয়েছে (বিলম্বিত)';document.getElementById('pd-m').textContent=MNS[sm]+' মাসের জমা বিলম্বিত হিসেবে রেকর্ড হয়েছে।';}
+  },function(){document.getElementById('pay-up').style.display='none';document.getElementById('pay-done').style.display='block';});
+}
 
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2,'0');
-    var mm = String(today.getMonth()+1).padStart(2,'0');
-    var yyyy = today.getFullYear();
-    var dateStr = dd+'/'+mm+'/'+yyyy;
+function resetPay(){
+  curMember=null;recB64=null;
+  document.getElementById('pay-login').style.display='block';
+  document.getElementById('pay-up').style.display='none';
+  document.getElementById('pay-done').style.display='none';
+  document.getElementById('l-nm').value='';document.getElementById('l-ct').value='';
+  document.getElementById('lsb').style.display='none';document.getElementById('l-btn').disabled=false;
+  document.getElementById('pd-t').textContent='জমা সফলভাবে গৃহীত হয়েছে!';
+  document.getElementById('pd-m').textContent='আপনার রিসিভ কপি এবং তথ্য সংরক্ষিত হয়েছে।';
+}
 
-    var payload = JSON.stringify({
-      name:    document.getElementById('inp-name').value.trim(),
-      phone:   document.getElementById('inp-phone').value.trim(),
-      email:   document.getElementById('inp-email').value.trim(),
-      nid:     document.getElementById('inp-nid').value.trim(),
-      address: document.getElementById('inp-address').value.trim(),
-      shares:  sharesNum+'টি',
-      monthly: monthlyAmt+' টাকা',
-      payment: document.getElementById('inp-payment').value || 'উল্লেখ করা হয়নি',
-      joinDate:dateStr,
-      agreed:  'হ্যাঁ'
+// ── REGISTRATION ──
+function submitReg(){
+  var ok=true;
+  [['r-nm','rf-nm',function(v){return v.trim().length>1;}],
+   ['r-ph','rf-ph',function(v){return /^01[3-9]\d{8}$/.test(v.trim());}],
+   ['r-em','rf-em',function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());}],
+   ['r-ni','rf-ni',function(v){return v.trim().length>4;}],
+   ['r-ad','rf-ad',function(v){return v.trim().length>3;}]
+  ].forEach(function(c){
+    var el=document.getElementById(c[0]);var wrap=document.getElementById(c[1]);
+    if(!c[2](el.value)){wrap.classList.add('has-err');el.classList.add('err');ok=false;}
+    else{wrap.classList.remove('has-err');el.classList.remove('err');}
+  });
+  if(!document.querySelector('input[name="rs"]:checked')){document.getElementById('rs-err').style.display='block';ok=false;}
+  else document.getElementById('rs-err').style.display='none';
+  if(!document.getElementById('rc1').checked||!document.getElementById('rc2').checked||!document.getElementById('rc3').checked){document.getElementById('rc-err').style.display='block';ok=false;}
+  else document.getElementById('rc-err').style.display='none';
+  if(!ok)return;
+  document.getElementById('reg-btn').disabled=true;
+  sb('reg-sb','loading','তথ্য সংরক্ষণ হচ্ছে...');
+  var sv=document.querySelector('input[name="rs"]:checked').value; var sn=parseInt(sv);
+  var now=new Date(); var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  xhrPost({action:'register',name:document.getElementById('r-nm').value.trim(),phone:document.getElementById('r-ph').value.trim(),email:document.getElementById('r-em').value.trim(),nid:document.getElementById('r-ni').value.trim(),address:document.getElementById('r-ad').value.trim(),shares:sn+'টি',monthly:(sn*1000)+' টাকা',payment:document.getElementById('r-py').value||'উল্লেখ করা হয়নি',joinDate:ds,agreed:'হ্যাঁ'},
+  function(){document.getElementById('reg-sb').style.display='none';document.getElementById('reg-form').style.display='none';document.getElementById('reg-done').style.display='block';},
+  function(){sb('reg-sb','error','সমস্যা হয়েছে। আবার চেষ্টা করুন।');document.getElementById('reg-btn').disabled=false;});
+}
+
+// ── LEDGER LOGIN (নিজের হিসাব) ──
+function ledgerLogin(){
+  var nm=document.getElementById('ll-nm').value.trim();
+  var ct=document.getElementById('ll-ct').value.trim();
+  if(!nm||!ct){sb('llsb','error','নাম এবং মোবাইল/ইমেইল আবশ্যক');return;}
+  document.getElementById('ll-btn').disabled=true;
+  sb('llsb','loading','তথ্য যাচাই হচ্ছে...');
+  xhrPost({action:'verify',name:nm,contact:ct},function(r){
+    if(r.status==='found'){
+      ledMember=r.member;
+      document.getElementById('led-login').style.display='none';
+      document.getElementById('led-content').style.display='block';
+      loadMyLedger(r.member.name);
+    } else {
+      sb('llsb','error','❌ তথ্য মেলেনি।');
+      document.getElementById('ll-btn').disabled=false;
+    }
+  },function(){sb('llsb','error','সংযোগ সমস্যা।');document.getElementById('ll-btn').disabled=false;});
+}
+
+function loadMyLedger(name){
+  sb('led-sb','loading','হিসাব লোড হচ্ছে...');
+  xhrPost({action:'getData',memberName:name},function(r){
+    document.getElementById('led-sb').style.display='none';
+    var pays=r.payments||[];
+    var mem=r.members&&r.members[0]||ledMember;
+    var sh=parseInt(mem.shares)||1;
+    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+
+    // Generate expected months since join
+    var now=new Date();
+    var joinParts=(mem.joinDate||'').split('/');
+    var joinDate=joinParts.length===3?new Date(joinParts[2],joinParts[1]-1,1):new Date(now.getFullYear(),now.getMonth()-5,1);
+    var expectedMonths=[];
+    var d=new Date(joinDate.getFullYear(),joinDate.getMonth(),1);
+    while(d<=new Date(now.getFullYear(),now.getMonth(),1)){
+      expectedMonths.push(MNS[d.getMonth()]+' '+d.getFullYear());
+      d.setMonth(d.getMonth()+1);
+    }
+    var paidSet={};
+    pays.forEach(function(p){paidSet[p.payMonth]=p.status;});
+    var pending=expectedMonths.filter(function(m){return !paidSet[m];});
+
+    var html='<div class="scards">';
+    html+='<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা দিয়েছি</div></div>';
+    html+='<div class="scard rd"><div class="sv">'+pending.length+'</div><div class="sl">বাকি মাস</div></div>';
+    html+='<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট টাকা জমা</div></div>';
+    html+='<div class="scard bl"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত জমা</div></div>';
+    html+='</div>';
+
+    if(pending.length>0){
+      html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:0.83rem;color:#b91c1c;"><strong>⚠️ বাকি মাস:</strong> '+pending.join(', ')+'</div>';
+    }
+
+    html+='<div class="ptw"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    if(pays.length===0){html+='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো জমা নেই</td></tr>';}
+    else pays.forEach(function(p){
+      html+='<tr><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
     });
+    html+='</tbody></table></div>';
+    document.getElementById('led-data').innerHTML=html;
+  },function(){sb('led-sb','error','তথ্য লোড করতে সমস্যা।');});
+}
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', SCRIPT_URL, true);
-    xhr.setRequestHeader('Content-Type','text/plain');
-    xhr.onreadystatechange = function() {
-      if(xhr.readyState === 4) {
-        try {
-          var res = JSON.parse(xhr.responseText);
-          if(res.status === 'success') {
-            document.getElementById('statusBar').style.display='none';
-            document.getElementById('memberForm').style.display='none';
-            document.getElementById('successScreen').style.display='block';
-          } else {
-            setStatus('error','সংরক্ষণে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
-            btn.disabled=false;
-          }
-        } catch(e) {
-          document.getElementById('statusBar').style.display='none';
-          document.getElementById('memberForm').style.display='none';
-          document.getElementById('successScreen').style.display='block';
-        }
-      }
-    };
-    xhr.onerror = function() {
-      setStatus('error','সংরক্ষণে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
-      btn.disabled=false;
-    };
-    xhr.send(payload);
-  }
+function ledgerLogout(){
+  ledMember=null;
+  document.getElementById('led-login').style.display='block';
+  document.getElementById('led-content').style.display='none';
+  document.getElementById('ll-nm').value='';document.getElementById('ll-ct').value='';
+  document.getElementById('llsb').style.display='none';document.getElementById('ll-btn').disabled=false;
+  document.getElementById('led-data').innerHTML='';
+}
+
+// ── ADMIN ──
+function adminLogin(){
+  var un=document.getElementById('adm-un').value.trim();
+  var pw=document.getElementById('adm-pw').value;
+  if(!un||!pw){sb('adm-sb','error','ইউজারনেম ও পাসওয়ার্ড দিন');return;}
+  document.getElementById('adm-sb').className='sbar loading';
+  document.getElementById('adm-sb').style.display='flex';
+  document.getElementById('adm-sm').textContent='যাচাই হচ্ছে...';
+  xhrPost({action:'adminAuth',username:un,password:pw},function(r){
+    if(r.status==='ok'){
+      admUser=un;
+      document.getElementById('adm-login-wrap').style.display='none';
+      document.getElementById('adm-panel').style.display='block';
+      loadAdminData();
+    } else {
+      sb('adm-sb','error','❌ ইউজারনেম বা পাসওয়ার্ড ভুল।');
+    }
+  },function(){sb('adm-sb','error','সংযোগ সমস্যা।');});
+}
+
+function loadAdminData(){
+  document.getElementById('adm-lb').style.display='block';
+  document.getElementById('adm-data').style.display='none';
+  xhrPost({action:'getData'},function(r){
+    document.getElementById('adm-lb').style.display='none';
+    document.getElementById('adm-data').style.display='block';
+    var mems=r.members||[]; var pays=r.payments||[];
+    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+
+    // Stats
+    document.getElementById('adm-stats').innerHTML=
+      '<div class="scard bl"><div class="sv">'+mems.length+'</div><div class="sl">মোট সদস্য</div></div>'+
+      '<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা</div></div>'+
+      '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
+      '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
+
+    // Big calendar
+    var now=new Date(); var mths=[];
+    for(var i=5;i>=0;i--){var mi=now.getMonth()-i;var yi=now.getFullYear();if(mi<0){mi+=12;yi--;}mths.push({m:mi,y:yi,label:MNS[mi]+' '+yi});}
+    var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
+    mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
+    cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
+    mems.forEach(function(m){
+      cHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
+      var mt=0;
+      mths.forEach(function(mo){
+        var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
+        if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
+        else cHtml+='<td><span class="tag miss">✗</span></td>';
+      });
+      var pendCount=mths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
+      cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
+    });
+    cHtml+='</tbody></table></div>';
+    document.getElementById('adm-cal').innerHTML=cHtml;
+
+    // Members table
+    var mH='<table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ইমেইল</th><th>শেয়ার</th><th>মাসিক</th><th>যোগদান</th></tr></thead><tbody>';
+    mems.forEach(function(m){mH+='<tr><td>'+m.name+'</td><td>'+m.phone+'</td><td>'+m.email+'</td><td>'+m.shares+'</td><td>'+m.monthly+'</td><td>'+m.joinDate+'</td></tr>';});
+    mH+='</tbody></table>';
+    document.getElementById('adm-mem').innerHTML=mH;
+
+    // Payments table
+    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    pays.forEach(function(p){
+      pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
+    });
+    pH+='</tbody></table>';
+    document.getElementById('adm-pay').innerHTML=pH;
+  },function(){document.getElementById('adm-lb').textContent='তথ্য লোড করতে সমস্যা।';});
+}
+
+function changePassword(){
+  var oldP=document.getElementById('pc-old').value;
+  var newP=document.getElementById('pc-new').value;
+  var cnf=document.getElementById('pc-cnf').value;
+  if(!oldP||!newP||!cnf){sb('pc-sb','error','সব ঘর পূরণ করুন');return;}
+  if(newP.length<6){sb('pc-sb','error','নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে');return;}
+  if(newP!==cnf){sb('pc-sb','error','নতুন পাসওয়ার্ড দুটো মিলছে না');return;}
+  sb('pc-sb','loading','পাসওয়ার্ড পরিবর্তন হচ্ছে...');
+  xhrPost({action:'changePass',username:admUser,oldPass:oldP,newPass:newP},function(r){
+    if(r.status==='ok'){sb('pc-sb','success','✅ পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!');document.getElementById('pc-old').value='';document.getElementById('pc-new').value='';document.getElementById('pc-cnf').value='';}
+    else sb('pc-sb','error','❌ বর্তমান পাসওয়ার্ড ভুল।');
+  },function(){sb('pc-sb','error','সংযোগ সমস্যা।');});
+}
+
+function adminLogout(){
+  admUser=null;
+  document.getElementById('adm-login-wrap').style.display='block';
+  document.getElementById('adm-panel').style.display='none';
+  document.getElementById('adm-un').value='';document.getElementById('adm-pw').value='';
+  document.getElementById('adm-sb').style.display='none';
+}
 </script>
 </body>
 </html>
