@@ -671,12 +671,14 @@ function loadMyLedger(name){
     var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
     var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
-    // Generate expected months since join
+    // Generate expected months — জুন ২০২৬ এর আগে দেখাবে না
     var now=new Date();
     var joinParts=(mem.joinDate||'').split('/');
-    var joinDate=joinParts.length===3?new Date(joinParts[2],joinParts[1]-1,1):new Date(now.getFullYear(),now.getMonth()-5,1);
+    var joinDate=joinParts.length===3?new Date(joinParts[2],joinParts[1]-1,1):new Date(2026,5,1);
+    var orgStart=new Date(2026,5,1);
+    var startFrom=joinDate<orgStart?orgStart:joinDate;
     var expectedMonths=[];
-    var d=new Date(joinDate.getFullYear(),joinDate.getMonth(),1);
+    var d=new Date(startFrom.getFullYear(),startFrom.getMonth(),1);
     while(d<=new Date(now.getFullYear(),now.getMonth(),1)){
       expectedMonths.push(MNS[d.getMonth()]+' '+d.getFullYear());
       d.setMonth(d.getMonth()+1);
