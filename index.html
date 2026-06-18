@@ -150,6 +150,11 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 .lbox{text-align:center;padding:36px 18px;color:var(--tm);font-size:0.86rem;}
 .footer{background:var(--gd);color:rgba(255,255,255,0.75);text-align:center;padding:20px 16px;font-size:0.77rem;}
 .footer strong{color:var(--golL);}
+.scan-box{border-radius:8px;padding:11px 14px;font-size:0.82rem;font-weight:600;margin-top:10px;display:none;align-items:center;gap:8px;line-height:1.5;}
+.scan-box.scanning{background:#eff6ff;color:#1d4ed8;display:flex;}
+.scan-box.valid{background:#f0fdf4;color:#15803d;display:flex;}
+.scan-box.invalid{background:#fef2f2;color:#b91c1c;display:flex;}
+.scan-spin{width:14px;height:14px;border:2px solid #93c5fd;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -295,6 +300,7 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
           <div class="fn" id="fnm"></div>
         </div>
         <div id="pvw" style="display:none;margin-bottom:11px;"><img id="ipv" style="max-width:100%;border-radius:7px;border:1px solid var(--bdr);" alt="Receipt"></div>
+        <div class="scan-box" id="scan-status"><div class="scan-spin" id="scan-spin"></div><span id="scan-msg"></span></div>
       </div>
       <div class="fc">
         <h3>📝 অতিরিক্ত তথ্য</h3>
@@ -460,15 +466,87 @@ document.addEventListener('change',function(e){
   }
 });
 
-function handleFile(inp){
+var receiptVerified=false;
+
+function setScanBox(type,msg){
+  var box=document.getElementById('scan-status');
+  var sp=document.getElementById('scan-spin');
+  box.className='scan-box '+type;
+  sp.style.display=(type==='scanning')?'block':'none';
+  document.getElementById('scan-msg').textContent=msg;
+}
+
+async function handleFile(inp){
   var f=inp.files[0]; if(!f)return;
   document.getElementById('fnm').textContent=f.name;
+  receiptVerified=false;
+  document.getElementById('pay-btn').disabled=true;
+
   var rd=new FileReader();
-  rd.onload=function(e){
+  rd.onload=async function(e){
     recB64=e.target.result;
     if(f.type.startsWith('image/')){
       document.getElementById('ipv').src=e.target.result;
       document.getElementById('pvw').style.display='block';
+    }
+
+    setScanBox('scanning','🔍 রিসিভের তারিখ স্ক্যান হচ্ছে...');
+
+    // PDF হলে document টাইপে পাঠাও, ছবি হলে image টাইপে
+    var isPDF=f.type==='application/pdf';
+    if(!f.type.startsWith('image/')&&!isPDF){
+      setScanBox('valid','✅ ফাইল আপলোড হয়েছে।');
+      receiptVerified=true;
+      document.getElementById('pay-btn').disabled=false;
+      return;
+    }
+
+    var now=new Date();
+    var curMonthBn=MNS[now.getMonth()]+' '+now.getFullYear();
+
+    try {
+      var imgData=recB64.split(',');
+      var mimeType=imgData[0].match(/:(.*?);/)[1];
+      var base64Data=imgData[1];
+
+      var contentBlock=isPDF
+        ? {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64Data}}
+        : {type:"image",source:{type:"base64",media_type:mimeType,data:base64Data}};
+
+      var aiRes=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-6",
+          max_tokens:400,
+          messages:[{
+            role:"user",
+            content:[
+              contentBlock,
+              {type:"text",text:"এই ছবিটি একটি বাংলাদেশি ব্যাংক বা মোবাইল ব্যাংকিং (বিকাশ, নগদ, রকেট, ডাচ-বাংলা, ব্র্যাক ব্যাংক ইত্যাদি) ট্রানজেকশনের রিসিভ কপি। এই রিসিভে যে তারিখ আছে সেটির মাস ও বছর বের করো। গ্রহণযোগ্য মাস হলো: "+curMonthBn+"। শুধু এই JSON ফরম্যাটে উত্তর দাও (অন্য কিছু লিখবে না): {\"valid\": true বা false, \"found_date\": \"রিসিভে পাওয়া তারিখ\", \"found_month_year\": \"মাস বছর\", \"reason\": \"সংক্ষিপ্ত কারণ বাংলায়\"}\n\nvalid হবে true যদি রিসিভের তারিখ "+curMonthBn+" মাসের হয়, অন্যথায় false।"}
+            ]
+          }]
+        })
+      });
+
+      var aiData=await aiRes.json();
+      var aiText=aiData.content.map(function(c){return c.type==='text'?c.text:'';}).join('');
+      var clean=aiText.replace(/```json|```/g,'').trim();
+      var result=JSON.parse(clean);
+
+      if(result.valid){
+        setScanBox('valid','✅ রিসিভ গ্রহণযোগ্য! পাওয়া তারিখ: '+result.found_date+' ('+result.found_month_year+')');
+        receiptVerified=true;
+        document.getElementById('pay-btn').disabled=false;
+      } else {
+        setScanBox('invalid','❌ রিসিভ গ্রহণযোগ্য নয়। পাওয়া তারিখ: '+(result.found_date||'অস্পষ্ট')+' — শুধু '+curMonthBn+' মাসের রিসিভ গ্রহণযোগ্য। '+result.reason);
+        receiptVerified=false;
+        document.getElementById('pay-btn').disabled=true;
+      }
+    } catch(e) {
+      setScanBox('valid','⚠️ স্বয়ংক্রিয় যাচাই সম্পন্ন হয়নি — ফাইল আপলোড হয়েছে, অ্যাডমিন যাচাই করবেন।');
+      receiptVerified=true;
+      document.getElementById('pay-btn').disabled=false;
     }
   };
   rd.readAsDataURL(f);
@@ -504,59 +582,15 @@ async function submitPayment(){
   if(!mo){alert('মাস নির্বাচন করুন।');return;}
   if(!mt){alert('পেমেন্ট পদ্ধতি নির্বাচন করুন।');return;}
   if(!recB64){alert('রিসিভ কপি আপলোড করুন।');return;}
+  if(!receiptVerified){alert('রিসিভ কপি যাচাই সম্পন্ন হয়নি বা গ্রহণযোগ্য নয়।');return;}
 
   document.getElementById('pay-btn').disabled=true;
-  sb('pay-sb','loading','রিসিভ কপির তারিখ যাচাই হচ্ছে...');
+  sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
 
   var now=new Date();
   var sy=parseInt(mo.split('-')[0]); var sm=parseInt(mo.split('-')[1])-1;
   var sh=parseInt(curMember.shares)||1;
   var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
-
-  // সবসময় শুধু চলতি মাসের রিসিভ গ্রহণযোগ্য
-  var validMonths=[{m:now.getMonth(),y:now.getFullYear(),label:MNS[now.getMonth()]+' '+now.getFullYear()}];
-  var validStr=validMonths[0].label;
-  var warningMsg='';
-
-  // AI দিয়ে রিসিভ যাচাই
-  try {
-    var imgData=recB64.split(',');
-    var mimeType=imgData[0].match(/:(.*?);/)[1];
-    var base64Data=imgData[1];
-
-    var aiRes=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:300,
-        messages:[{
-          role:"user",
-          content:[
-            {type:"image",source:{type:"base64",media_type:mimeType,data:base64Data}},
-            {type:"text",text:"এই রিসিভ কপিতে কোন মাস ও বছরের তারিখ আছে? শুধু JSON দিন: {\"valid\": true/false, \"month\": \"মাসের নাম বাংলায়\", \"year\": বছর, \"reason\": \"কারণ\"}\n\nগ্রহণযোগ্য মাস: "+validStr+"\n\nযদি রিসিভে এই মাসের যেকোনো একটির তারিখ থাকে তাহলে valid: true, না থাকলে false।"}
-          ]
-        }]
-      })
-    });
-
-    var aiData=await aiRes.json();
-    var aiText=aiData.content[0].text;
-    var clean=aiText.replace(/```json|```/g,'').trim();
-    var result=JSON.parse(clean);
-
-    if(!result.valid){
-      sb('pay-sb','error','❌ রিসিভের তারিখ গ্রহণযোগ্য নয়। গ্রহণযোগ্য মাস: '+validStr+warningMsg+' — পুনরায় সঠিক রিসিভ আপলোড করুন।');
-      document.getElementById('pay-btn').disabled=false;
-      return;
-    }
-
-    sb('pay-sb','loading','✅ রিসিভ যাচাই হয়েছে। সংরক্ষণ হচ্ছে...');
-  } catch(e) {
-    // AI যাচাই ব্যর্থ হলে চালিয়ে যাবে
-    sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
-  }
-
   var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
   xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',receipt:recB64},
   function(){
@@ -567,7 +601,7 @@ async function submitPayment(){
 }
 
 function resetPay(){
-  curMember=null;recB64=null;
+  curMember=null;recB64=null;receiptVerified=false;
   document.getElementById('pay-login').style.display='block';
   document.getElementById('pay-up').style.display='none';
   document.getElementById('pay-done').style.display='none';
@@ -575,6 +609,9 @@ function resetPay(){
   document.getElementById('lsb').style.display='none';document.getElementById('l-btn').disabled=false;
   document.getElementById('pd-t').textContent='জমা সফলভাবে গৃহীত হয়েছে!';
   document.getElementById('pd-m').textContent='আপনার রিসিভ কপি এবং তথ্য সংরক্ষিত হয়েছে।';
+  document.getElementById('scan-status').className='scan-box';
+  document.getElementById('pvw').style.display='none';
+  document.getElementById('fnm').textContent='';
 }
 
 // ── REGISTRATION ──
