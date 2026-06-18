@@ -754,26 +754,49 @@ function loadAdminData(){
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
       '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
 
-    // Big calendar — জুন ২০২৬ থেকে মে ২০৩৪ (৯৬ মাস)
-    var mths=[];
-    var startM=5,startY=2026;
-    for(var i=0;i<96;i++){var mi=(startM+i)%12;var yi=startY+Math.floor((startM+i)/12);mths.push({m:mi,y:yi,label:MNS[mi]+' '+yi});}
-    var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
-    mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
-    cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
-    mems.forEach(function(m){
-      cHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
-      var mt=0;
-      mths.forEach(function(mo){
-        var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
-        if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
-        else cHtml+='<td><span class="tag miss">✗</span></td>';
+    // Big calendar — বছর অনুযায়ী আলাদা টেবিল (জুন ২০২৬ থেকে মে ২০৩৪)
+    var now=new Date();
+    var calHtml='';
+    // বছরগুলো: ২০২৬ থেকে ২০৩৩ (জুন ২০২৬ — মে ২০৩৪)
+    var years=[];
+    for(var y=2026;y<=2033;y++) years.push(y);
+
+    years.forEach(function(yr){
+      // প্রতি বছরের মাস: ২০২৬ এ জুন-ডিসেম্বর, বাকি বছরে জানুয়ারি-ডিসেম্বর, ২০৩৩ এ জানুয়ারি-মে
+      var mths=[];
+      var mStart=(yr===2026)?5:0;
+      var mEnd=(yr===2033)?4:11;
+      for(var mi=mStart;mi<=mEnd;mi++) mths.push({m:mi,y:yr,label:MNS[mi]+' '+yr});
+
+      // ভবিষ্যতের বছর (এখনো শুরু হয়নি) হালকা দেখাবে
+      var isFuture=yr>now.getFullYear();
+      var isCurrentYear=yr===now.getFullYear();
+
+      calHtml+='<div style="margin-bottom:24px;">';
+      calHtml+='<div style="font-size:0.8rem;font-weight:700;color:'+(isCurrentYear?'#1a3c2e':'#6b7280')+';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;padding:6px 10px;background:'+(isCurrentYear?'#e8f5ee':'#f3f4f6')+';border-radius:6px;display:inline-block;">'+yr+' সাল'+(isCurrentYear?' (চলতি)':'')+'</div>';
+      calHtml+='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
+      mths.forEach(function(mo){calHtml+='<th>'+MNS[mo.m]+'</th>';});
+      calHtml+='<th>জমা</th><th>বাকি</th></tr></thead><tbody>';
+
+      mems.forEach(function(m){
+        calHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
+        var mt=0;
+        mths.forEach(function(mo){
+          if(isFuture||(mo.m>now.getMonth()&&mo.y===now.getFullYear())){
+            calHtml+='<td><span style="color:#d1d5db;font-size:0.75rem;">—</span></td>';
+          } else {
+            var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
+            if(p){mt+=(parseInt(p.amount)||0);calHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
+            else calHtml+='<td><span class="tag miss">✗</span></td>';
+          }
+        });
+        var pastMths=mths.filter(function(mo){return !(isFuture||(mo.m>now.getMonth()&&mo.y===now.getFullYear()));});
+        var pendCount=pastMths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
+        calHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+'</span>':'<span class="tag ok">✓</span>')+'</td></tr>';
       });
-      var pendCount=mths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
-      cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
+      calHtml+='</tbody></table></div></div>';
     });
-    cHtml+='</tbody></table></div>';
-    document.getElementById('adm-cal').innerHTML=cHtml;
+    document.getElementById('adm-cal').innerHTML=calHtml;
 
     // Members table
     var mH='<table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ইমেইল</th><th>শেয়ার</th><th>মাসিক</th><th>যোগদান</th></tr></thead><tbody>';
