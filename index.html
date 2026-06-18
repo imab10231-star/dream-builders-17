@@ -487,6 +487,10 @@ function verifyMember(){
       document.getElementById('pay-login').style.display='none';
       document.getElementById('pay-up').style.display='block';
       initPayMonths();
+      // সদস্যের জমার ইতিহাস লোড করো বকেয়া গণনার জন্য
+      xhrPost({action:'getData',memberName:r.member.name},function(d){
+        window._myPayments = d.payments||[];
+      },function(){window._myPayments=[];});
     } else {
       sb('lsb','error','❌ তথ্য মেলেনি। নিবন্ধিত নাম ও মোবাইল/ইমেইল দিন।');
       document.getElementById('l-btn').disabled=false;
@@ -494,19 +498,66 @@ function verifyMember(){
   },function(){sb('lsb','error','সংযোগ সমস্যা।');document.getElementById('l-btn').disabled=false;});
 }
 
-function submitPayment(){
+async function submitPayment(){
   var mo=document.getElementById('p-mo').value;
   var mt=document.getElementById('p-mt').value;
   if(!mo){alert('মাস নির্বাচন করুন।');return;}
   if(!mt){alert('পেমেন্ট পদ্ধতি নির্বাচন করুন।');return;}
   if(!recB64){alert('রিসিভ কপি আপলোড করুন।');return;}
+
   document.getElementById('pay-btn').disabled=true;
-  sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
+  sb('pay-sb','loading','রিসিভ কপির তারিখ যাচাই হচ্ছে...');
+
   var now=new Date();
   var sy=parseInt(mo.split('-')[0]); var sm=parseInt(mo.split('-')[1])-1;
-  var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
   var sh=parseInt(curMember.shares)||1;
   var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+
+  // সবসময় শুধু চলতি মাসের রিসিভ গ্রহণযোগ্য
+  var validMonths=[{m:now.getMonth(),y:now.getFullYear(),label:MNS[now.getMonth()]+' '+now.getFullYear()}];
+  var validStr=validMonths[0].label;
+  var warningMsg='';
+
+  // AI দিয়ে রিসিভ যাচাই
+  try {
+    var imgData=recB64.split(',');
+    var mimeType=imgData[0].match(/:(.*?);/)[1];
+    var base64Data=imgData[1];
+
+    var aiRes=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:300,
+        messages:[{
+          role:"user",
+          content:[
+            {type:"image",source:{type:"base64",media_type:mimeType,data:base64Data}},
+            {type:"text",text:"এই রিসিভ কপিতে কোন মাস ও বছরের তারিখ আছে? শুধু JSON দিন: {\"valid\": true/false, \"month\": \"মাসের নাম বাংলায়\", \"year\": বছর, \"reason\": \"কারণ\"}\n\nগ্রহণযোগ্য মাস: "+validStr+"\n\nযদি রিসিভে এই মাসের যেকোনো একটির তারিখ থাকে তাহলে valid: true, না থাকলে false।"}
+          ]
+        }]
+      })
+    });
+
+    var aiData=await aiRes.json();
+    var aiText=aiData.content[0].text;
+    var clean=aiText.replace(/```json|```/g,'').trim();
+    var result=JSON.parse(clean);
+
+    if(!result.valid){
+      sb('pay-sb','error','❌ রিসিভের তারিখ গ্রহণযোগ্য নয়। গ্রহণযোগ্য মাস: '+validStr+warningMsg+' — পুনরায় সঠিক রিসিভ আপলোড করুন।');
+      document.getElementById('pay-btn').disabled=false;
+      return;
+    }
+
+    sb('pay-sb','loading','✅ রিসিভ যাচাই হয়েছে। সংরক্ষণ হচ্ছে...');
+  } catch(e) {
+    // AI যাচাই ব্যর্থ হলে চালিয়ে যাবে
+    sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
+  }
+
+  var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
   xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',receipt:recB64},
   function(){
     document.getElementById('pay-up').style.display='none';
