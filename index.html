@@ -729,9 +729,9 @@ function loadAdminData(){
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
       '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
 
-    // Big calendar
+    // Big calendar — জানুয়ারি থেকে চলতি মাস পর্যন্ত
     var now=new Date(); var mths=[];
-    for(var i=5;i>=0;i--){var mi=now.getMonth()-i;var yi=now.getFullYear();if(mi<0){mi+=12;yi--;}mths.push({m:mi,y:yi,label:MNS[mi]+' '+yi});}
+    for(var mi=0; mi<=now.getMonth(); mi++){mths.push({m:mi,y:now.getFullYear(),label:MNS[mi]+' '+now.getFullYear()});}
     var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
     mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
     cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
