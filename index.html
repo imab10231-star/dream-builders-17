@@ -787,9 +787,11 @@ function loadAdminData(){
     mH+='</tbody></table>';
     document.getElementById('adm-mem').innerHTML=mH;
 
-    // Payments table
+    // Payments table — শুধু অনুমোদিত জমা দেখাবে
+    var approvedOnly=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
     var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
-    pays.forEach(function(p){
+    if(approvedOnly.length===0){pH+='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো অনুমোদিত জমা নেই</td></tr>';}
+    else approvedOnly.forEach(function(p){
       pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
     });
     pH+='</tbody></table>';
@@ -880,6 +882,16 @@ function refreshCalendarAndStats(){
     });
     cHtml+='</tbody></table></div>';
     document.getElementById('adm-cal').innerHTML=cHtml;
+
+    // সকল জমার তালিকাও আপডেট — শুধু অনুমোদিত
+    var approvedOnly=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    if(approvedOnly.length===0){pH+='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো অনুমোদিত জমা নেই</td></tr>';}
+    else approvedOnly.forEach(function(p){
+      pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
+    });
+    pH+='</tbody></table>';
+    document.getElementById('adm-pay').innerHTML=pH;
   },function(){});
 }
 
