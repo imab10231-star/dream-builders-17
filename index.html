@@ -150,11 +150,6 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 .lbox{text-align:center;padding:36px 18px;color:var(--tm);font-size:0.86rem;}
 .footer{background:var(--gd);color:rgba(255,255,255,0.75);text-align:center;padding:20px 16px;font-size:0.77rem;}
 .footer strong{color:var(--golL);}
-.scan-box{border-radius:8px;padding:11px 14px;font-size:0.82rem;font-weight:600;margin-top:10px;display:none;align-items:center;gap:8px;line-height:1.5;}
-.scan-box.scanning{background:#eff6ff;color:#1d4ed8;display:flex;}
-.scan-box.valid{background:#f0fdf4;color:#15803d;display:flex;}
-.scan-box.invalid{background:#fef2f2;color:#b91c1c;display:flex;}
-.scan-spin{width:14px;height:14px;border:2px solid #93c5fd;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -300,7 +295,6 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
           <div class="fn" id="fnm"></div>
         </div>
         <div id="pvw" style="display:none;margin-bottom:11px;"><img id="ipv" style="max-width:100%;border-radius:7px;border:1px solid var(--bdr);" alt="Receipt"></div>
-        <div class="scan-box" id="scan-status"><div class="scan-spin" id="scan-spin"></div><span id="scan-msg"></span></div>
       </div>
       <div class="fc">
         <h3>📝 অতিরিক্ত তথ্য</h3>
@@ -381,6 +375,20 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
         <!-- Payments -->
         <div class="sec-title">সকল জমার তালিকা</div>
         <div class="ptw" id="adm-pay" style="margin-bottom:20px;"></div>
+        <!-- Receipts -->
+        <div class="sec-title">রিসিভ কপি তালিকা</div>
+        <div class="ptw" id="adm-receipts" style="margin-bottom:20px;"></div>
+        <!-- Reminder -->
+        <div class="sec-title">সদস্যদের রিমাইন্ডার পাঠান</div>
+        <div class="pass-change-box" style="margin-bottom:20px;">
+          <h3>📢 ইমেইলে রিমাইন্ডার পাঠান</h3>
+          <p>যেসব সদস্য চলতি মাসের জমা দেননি তাদের একসাথে রিমাইন্ডার পাঠাতে পারবেন।</p>
+          <div id="rem-sb" class="sbar"><div class="spin"></div><span id="rem-sm"></span></div>
+          <div id="rem-pending-list" style="margin-bottom:14px;"></div>
+          <div class="field"><label>বার্তার বিষয়</label><input type="text" id="rem-subject" value="📢 Dream Builders 17 — মাসিক জমার রিমাইন্ডার"></div>
+          <div class="field"><label>বার্তা</label><input type="text" id="rem-message" placeholder="খালি রাখলে ডিফল্ট বার্তা পাঠানো হবে"></div>
+          <button class="btn gbtn" onclick="sendBulkReminder()">📨 সকল বাকি সদস্যকে রিমাইন্ডার পাঠান</button>
+        </div>
         <!-- Password Change -->
         <div class="sec-title">পাসওয়ার্ড পরিবর্তন</div>
         <div class="pass-change-box">
@@ -401,7 +409,7 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 <div class="footer"><strong>Dream Builders 17 – SSC ব্যাচ ২০১৭</strong><br>বিশ্বাস · সহযোগিতা · সমৃদ্ধি</div>
 
 <script>
-var SURL = "https://script.google.com/macros/s/AKfycbzmLv_nDvoBURAKqR8WCi5iq5HlyUz6XtcrVOuwCjPIbGE40m8ium19f2QOuTw8YkYBiw/exec";
+var SURL = "https://script.google.com/macros/s/AKfycbytJZvFLon_gssDId5_1MD941TkMRDgDn3KxgvxKmAfop2JQsR8tZGlSsLTYFvtk_vteQ/exec";
 var MNS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 var curMember=null, recB64=null, admUser=null, ledMember=null;
 
@@ -466,87 +474,15 @@ document.addEventListener('change',function(e){
   }
 });
 
-var receiptVerified=false;
-
-function setScanBox(type,msg){
-  var box=document.getElementById('scan-status');
-  var sp=document.getElementById('scan-spin');
-  box.className='scan-box '+type;
-  sp.style.display=(type==='scanning')?'block':'none';
-  document.getElementById('scan-msg').textContent=msg;
-}
-
-async function handleFile(inp){
+function handleFile(inp){
   var f=inp.files[0]; if(!f)return;
   document.getElementById('fnm').textContent=f.name;
-  receiptVerified=false;
-  document.getElementById('pay-btn').disabled=true;
-
   var rd=new FileReader();
-  rd.onload=async function(e){
+  rd.onload=function(e){
     recB64=e.target.result;
     if(f.type.startsWith('image/')){
       document.getElementById('ipv').src=e.target.result;
       document.getElementById('pvw').style.display='block';
-    }
-
-    setScanBox('scanning','🔍 রিসিভের তারিখ স্ক্যান হচ্ছে...');
-
-    // PDF হলে document টাইপে পাঠাও, ছবি হলে image টাইপে
-    var isPDF=f.type==='application/pdf';
-    if(!f.type.startsWith('image/')&&!isPDF){
-      setScanBox('valid','✅ ফাইল আপলোড হয়েছে।');
-      receiptVerified=true;
-      document.getElementById('pay-btn').disabled=false;
-      return;
-    }
-
-    var now=new Date();
-    var curMonthBn=MNS[now.getMonth()]+' '+now.getFullYear();
-
-    try {
-      var imgData=recB64.split(',');
-      var mimeType=imgData[0].match(/:(.*?);/)[1];
-      var base64Data=imgData[1];
-
-      var contentBlock=isPDF
-        ? {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64Data}}
-        : {type:"image",source:{type:"base64",media_type:mimeType,data:base64Data}};
-
-      var aiRes=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-6",
-          max_tokens:400,
-          messages:[{
-            role:"user",
-            content:[
-              contentBlock,
-              {type:"text",text:"এই ছবিটি একটি বাংলাদেশি ব্যাংক বা মোবাইল ব্যাংকিং (বিকাশ, নগদ, রকেট, ডাচ-বাংলা, ব্র্যাক ব্যাংক ইত্যাদি) ট্রানজেকশনের রিসিভ কপি। এই রিসিভে যে তারিখ আছে সেটির মাস ও বছর বের করো। গ্রহণযোগ্য মাস হলো: "+curMonthBn+"। শুধু এই JSON ফরম্যাটে উত্তর দাও (অন্য কিছু লিখবে না): {\"valid\": true বা false, \"found_date\": \"রিসিভে পাওয়া তারিখ\", \"found_month_year\": \"মাস বছর\", \"reason\": \"সংক্ষিপ্ত কারণ বাংলায়\"}\n\nvalid হবে true যদি রিসিভের তারিখ "+curMonthBn+" মাসের হয়, অন্যথায় false।"}
-            ]
-          }]
-        })
-      });
-
-      var aiData=await aiRes.json();
-      var aiText=aiData.content.map(function(c){return c.type==='text'?c.text:'';}).join('');
-      var clean=aiText.replace(/```json|```/g,'').trim();
-      var result=JSON.parse(clean);
-
-      if(result.valid){
-        setScanBox('valid','✅ রিসিভ গ্রহণযোগ্য! পাওয়া তারিখ: '+result.found_date+' ('+result.found_month_year+')');
-        receiptVerified=true;
-        document.getElementById('pay-btn').disabled=false;
-      } else {
-        setScanBox('invalid','❌ রিসিভ গ্রহণযোগ্য নয়। পাওয়া তারিখ: '+(result.found_date||'অস্পষ্ট')+' — শুধু '+curMonthBn+' মাসের রিসিভ গ্রহণযোগ্য। '+result.reason);
-        receiptVerified=false;
-        document.getElementById('pay-btn').disabled=true;
-      }
-    } catch(e) {
-      setScanBox('valid','⚠️ স্বয়ংক্রিয় যাচাই সম্পন্ন হয়নি — ফাইল আপলোড হয়েছে, অ্যাডমিন যাচাই করবেন।');
-      receiptVerified=true;
-      document.getElementById('pay-btn').disabled=false;
     }
   };
   rd.readAsDataURL(f);
@@ -582,15 +518,59 @@ async function submitPayment(){
   if(!mo){alert('মাস নির্বাচন করুন।');return;}
   if(!mt){alert('পেমেন্ট পদ্ধতি নির্বাচন করুন।');return;}
   if(!recB64){alert('রিসিভ কপি আপলোড করুন।');return;}
-  if(!receiptVerified){alert('রিসিভ কপি যাচাই সম্পন্ন হয়নি বা গ্রহণযোগ্য নয়।');return;}
 
   document.getElementById('pay-btn').disabled=true;
-  sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
+  sb('pay-sb','loading','রিসিভ কপির তারিখ যাচাই হচ্ছে...');
 
   var now=new Date();
   var sy=parseInt(mo.split('-')[0]); var sm=parseInt(mo.split('-')[1])-1;
   var sh=parseInt(curMember.shares)||1;
   var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+
+  // সবসময় শুধু চলতি মাসের রিসিভ গ্রহণযোগ্য
+  var validMonths=[{m:now.getMonth(),y:now.getFullYear(),label:MNS[now.getMonth()]+' '+now.getFullYear()}];
+  var validStr=validMonths[0].label;
+  var warningMsg='';
+
+  // AI দিয়ে রিসিভ যাচাই
+  try {
+    var imgData=recB64.split(',');
+    var mimeType=imgData[0].match(/:(.*?);/)[1];
+    var base64Data=imgData[1];
+
+    var aiRes=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:300,
+        messages:[{
+          role:"user",
+          content:[
+            {type:"image",source:{type:"base64",media_type:mimeType,data:base64Data}},
+            {type:"text",text:"এই রিসিভ কপিতে কোন মাস ও বছরের তারিখ আছে? শুধু JSON দিন: {\"valid\": true/false, \"month\": \"মাসের নাম বাংলায়\", \"year\": বছর, \"reason\": \"কারণ\"}\n\nগ্রহণযোগ্য মাস: "+validStr+"\n\nযদি রিসিভে এই মাসের যেকোনো একটির তারিখ থাকে তাহলে valid: true, না থাকলে false।"}
+          ]
+        }]
+      })
+    });
+
+    var aiData=await aiRes.json();
+    var aiText=aiData.content[0].text;
+    var clean=aiText.replace(/```json|```/g,'').trim();
+    var result=JSON.parse(clean);
+
+    if(!result.valid){
+      sb('pay-sb','error','❌ রিসিভের তারিখ গ্রহণযোগ্য নয়। গ্রহণযোগ্য মাস: '+validStr+warningMsg+' — পুনরায় সঠিক রিসিভ আপলোড করুন।');
+      document.getElementById('pay-btn').disabled=false;
+      return;
+    }
+
+    sb('pay-sb','loading','✅ রিসিভ যাচাই হয়েছে। সংরক্ষণ হচ্ছে...');
+  } catch(e) {
+    // AI যাচাই ব্যর্থ হলে চালিয়ে যাবে
+    sb('pay-sb','loading','সংরক্ষণ হচ্ছে...');
+  }
+
   var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
   xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',receipt:recB64},
   function(){
@@ -601,7 +581,7 @@ async function submitPayment(){
 }
 
 function resetPay(){
-  curMember=null;recB64=null;receiptVerified=false;
+  curMember=null;recB64=null;
   document.getElementById('pay-login').style.display='block';
   document.getElementById('pay-up').style.display='none';
   document.getElementById('pay-done').style.display='none';
@@ -609,9 +589,6 @@ function resetPay(){
   document.getElementById('lsb').style.display='none';document.getElementById('l-btn').disabled=false;
   document.getElementById('pd-t').textContent='জমা সফলভাবে গৃহীত হয়েছে!';
   document.getElementById('pd-m').textContent='আপনার রিসিভ কপি এবং তথ্য সংরক্ষিত হয়েছে।';
-  document.getElementById('scan-status').className='scan-box';
-  document.getElementById('pvw').style.display='none';
-  document.getElementById('fnm').textContent='';
 }
 
 // ── REGISTRATION ──
@@ -671,14 +648,12 @@ function loadMyLedger(name){
     var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
     var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
-    // Generate expected months — জুন ২০২৬ এর আগে দেখাবে না
+    // Generate expected months since join
     var now=new Date();
     var joinParts=(mem.joinDate||'').split('/');
-    var joinDate=joinParts.length===3?new Date(joinParts[2],joinParts[1]-1,1):new Date(2026,5,1);
-    var orgStart=new Date(2026,5,1);
-    var startFrom=joinDate<orgStart?orgStart:joinDate;
+    var joinDate=joinParts.length===3?new Date(joinParts[2],joinParts[1]-1,1):new Date(now.getFullYear(),now.getMonth()-5,1);
     var expectedMonths=[];
-    var d=new Date(startFrom.getFullYear(),startFrom.getMonth(),1);
+    var d=new Date(joinDate.getFullYear(),joinDate.getMonth(),1);
     while(d<=new Date(now.getFullYear(),now.getMonth(),1)){
       expectedMonths.push(MNS[d.getMonth()]+' '+d.getFullYear());
       d.setMonth(d.getMonth()+1);
@@ -754,49 +729,25 @@ function loadAdminData(){
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
       '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
 
-    // Big calendar — বছর অনুযায়ী আলাদা টেবিল (জুন ২০২৬ থেকে মে ২০৩৪)
-    var now=new Date();
-    var calHtml='';
-    // বছরগুলো: ২০২৬ থেকে ২০৩৩ (জুন ২০২৬ — মে ২০৩৪)
-    var years=[];
-    for(var y=2026;y<=2033;y++) years.push(y);
-
-    years.forEach(function(yr){
-      // প্রতি বছরের মাস: ২০২৬ এ জুন-ডিসেম্বর, বাকি বছরে জানুয়ারি-ডিসেম্বর, ২০৩৩ এ জানুয়ারি-মে
-      var mths=[];
-      var mStart=(yr===2026)?5:0;
-      var mEnd=(yr===2033)?4:11;
-      for(var mi=mStart;mi<=mEnd;mi++) mths.push({m:mi,y:yr,label:MNS[mi]+' '+yr});
-
-      // ভবিষ্যতের বছর (এখনো শুরু হয়নি) হালকা দেখাবে
-      var isFuture=yr>now.getFullYear();
-      var isCurrentYear=yr===now.getFullYear();
-
-      calHtml+='<div style="margin-bottom:24px;">';
-      calHtml+='<div style="font-size:0.8rem;font-weight:700;color:'+(isCurrentYear?'#1a3c2e':'#6b7280')+';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;padding:6px 10px;background:'+(isCurrentYear?'#e8f5ee':'#f3f4f6')+';border-radius:6px;display:inline-block;">'+yr+' সাল'+(isCurrentYear?' (চলতি)':'')+'</div>';
-      calHtml+='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
-      mths.forEach(function(mo){calHtml+='<th>'+MNS[mo.m]+'</th>';});
-      calHtml+='<th>জমা</th><th>বাকি</th></tr></thead><tbody>';
-
-      mems.forEach(function(m){
-        calHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
-        var mt=0;
-        mths.forEach(function(mo){
-          if(isFuture||(mo.m>now.getMonth()&&mo.y===now.getFullYear())){
-            calHtml+='<td><span style="color:#d1d5db;font-size:0.75rem;">—</span></td>';
-          } else {
-            var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
-            if(p){mt+=(parseInt(p.amount)||0);calHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
-            else calHtml+='<td><span class="tag miss">✗</span></td>';
-          }
-        });
-        var pastMths=mths.filter(function(mo){return !(isFuture||(mo.m>now.getMonth()&&mo.y===now.getFullYear()));});
-        var pendCount=pastMths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
-        calHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+'</span>':'<span class="tag ok">✓</span>')+'</td></tr>';
+    // Big calendar
+    var now=new Date(); var mths=[];
+    for(var i=5;i>=0;i--){var mi=now.getMonth()-i;var yi=now.getFullYear();if(mi<0){mi+=12;yi--;}mths.push({m:mi,y:yi,label:MNS[mi]+' '+yi});}
+    var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
+    mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
+    cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
+    mems.forEach(function(m){
+      cHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
+      var mt=0;
+      mths.forEach(function(mo){
+        var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
+        if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
+        else cHtml+='<td><span class="tag miss">✗</span></td>';
       });
-      calHtml+='</tbody></table></div></div>';
+      var pendCount=mths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
+      cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
     });
-    document.getElementById('adm-cal').innerHTML=calHtml;
+    cHtml+='</tbody></table></div>';
+    document.getElementById('adm-cal').innerHTML=cHtml;
 
     // Members table
     var mH='<table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ইমেইল</th><th>শেয়ার</th><th>মাসিক</th><th>যোগদান</th></tr></thead><tbody>';
@@ -811,7 +762,56 @@ function loadAdminData(){
     });
     pH+='</tbody></table>';
     document.getElementById('adm-pay').innerHTML=pH;
+
+    // Receipts table — সরাসরি ছবি/লিংক দেখা
+    var rH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>তারিখ</th><th>রিসিভ কপি</th></tr></thead><tbody>';
+    pays.forEach(function(p){
+      var url=p.receiptUrl||'—';
+      var linkHtml='—';
+      if(url && url!=='—' && url!=='আপলোড ব্যর্থ'){
+        linkHtml='<a href="'+url+'" target="_blank" style="color:#1d4ed8;font-weight:600;">📄 দেখুন</a>';
+      } else if(url==='আপলোড ব্যর্থ'){
+        linkHtml='<span style="color:#b91c1c;">আপলোড ব্যর্থ</span>';
+      }
+      rH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.submitDate+'</td><td>'+linkHtml+'</td></tr>';
+    });
+    rH+='</tbody></table>';
+    document.getElementById('adm-receipts').innerHTML=rH;
+
+    // রিমাইন্ডার সেকশনের জন্য বাকি সদস্যদের তালিকা (চলতি মাসের ভিত্তিতে)
+    var now2=new Date(); var curLabel=MNS[now2.getMonth()]+' '+now2.getFullYear();
+    var pendingMembers=mems.filter(function(m){
+      return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===curLabel;});
+    });
+    window._pendingMembers=pendingMembers;
+    if(pendingMembers.length===0){
+      document.getElementById('rem-pending-list').innerHTML='<div style="color:#15803d;font-size:0.82rem;">✅ সকলে চলতি মাসের জমা দিয়ে দিয়েছেন!</div>';
+    } else {
+      document.getElementById('rem-pending-list').innerHTML='<div style="font-size:0.82rem;color:var(--tm);margin-bottom:6px;"><strong>'+curLabel+'</strong> মাসের জমা বাকি ('+pendingMembers.length+' জন):</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+pendingMembers.map(function(m){return '<span class="tag late">'+m.name+'</span>';}).join('')+'</div>';
+    }
   },function(){document.getElementById('adm-lb').textContent='তথ্য লোড করতে সমস্যা।';});
+}
+
+// ── বাকি সদস্যদের একসাথে রিমাইন্ডার পাঠানো ──
+function sendBulkReminder(){
+  var pending=window._pendingMembers||[];
+  if(pending.length===0){sb('rem-sb','error','কোনো বাকি সদস্য নেই।');return;}
+  var subject=document.getElementById('rem-subject').value.trim()||'📢 Dream Builders 17 — মাসিক জমার রিমাইন্ডার';
+  var customMsg=document.getElementById('rem-message').value.trim();
+  sb('rem-sb','loading','রিমাইন্ডার পাঠানো হচ্ছে... ০/'+pending.length);
+  var sent=0, failed=0;
+  function sendNext(i){
+    if(i>=pending.length){
+      sb('rem-sb', failed>0?'error':'success', '✅ পাঠানো হয়েছে: '+sent+' জন'+(failed>0?', ব্যর্থ: '+failed+' জন':''));
+      return;
+    }
+    var m=pending[i];
+    var msg=customMsg || ('প্রিয় '+m.name+',\n\nDream Builders 17 প্ল্যাটফর্মে আপনার এই মাসের জমা এখনো দেওয়া হয়নি।\nঅনুগ্রহ করে দ্রুত "মাসিক জমা" ট্যাবে গিয়ে জমা সম্পন্ন করুন।\n\nধন্যবাদ\nDream Builders 17');
+    xhrPost({action:'sendReminder',memberName:m.name,memberEmail:m.email,subject:subject,message:msg},
+    function(r){ if(r.status==='success') sent++; else failed++; sb('rem-sb','loading','রিমাইন্ডার পাঠানো হচ্ছে... '+(i+1)+'/'+pending.length); sendNext(i+1); },
+    function(){ failed++; sendNext(i+1); });
+  }
+  sendNext(0);
 }
 
 function changePassword(){
