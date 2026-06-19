@@ -779,14 +779,49 @@ function loadAdminData(){
     document.getElementById('adm-cal').innerHTML=cHtml;
 
     // Members table
-    var mH='<table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ইমেইল</th><th>শেয়ার</th><th>মাসিক</th><th>যোগদান</th></tr></thead><tbody>';
-    mems.forEach(function(m){mH+='<tr><td>'+m.name+'</td><td>'+m.phone+'</td><td>'+m.email+'</td><td>'+m.shares+'</td><td>'+m.monthly+'</td><td>'+m.joinDate+'</td></tr>';});
+    var memThStyle='style="background:#1a3c2e;color:#f0d080;padding:9px 10px;font-size:0.74rem;font-weight:700;text-align:left;white-space:nowrap;"';
+    var mH='<table><thead><tr>'
+      +'<th '+memThStyle+'>পূর্ণ নাম</th>'
+      +'<th '+memThStyle+'>মোবাইল নম্বর</th>'
+      +'<th '+memThStyle+'>ইমেইল</th>'
+      +'<th '+memThStyle+'>NID / জন্ম সনদ</th>'
+      +'<th '+memThStyle+'>ঠিকানা</th>'
+      +'<th '+memThStyle+'>শেয়ার সংখ্যা</th>'
+      +'<th '+memThStyle+'>মাসিক পরিমাণ</th>'
+      +'<th '+memThStyle+'>পেমেন্ট পদ্ধতি</th>'
+      +'<th '+memThStyle+'>যোগদানের তারিখ</th>'
+      +'<th '+memThStyle+'>শর্ত গ্রহণ</th>'
+      +'</tr></thead><tbody>';
+    mems.forEach(function(m){
+      var agreed=m.agreed||m.consent||'—';
+      mH+='<tr>'
+        +'<td>'+m.name+'</td>'
+        +'<td>'+m.phone+'</td>'
+        +'<td>'+m.email+'</td>'
+        +'<td>'+(m.nid||m.nid_birth||'—')+'</td>'
+        +'<td>'+(m.address||'—')+'</td>'
+        +'<td>'+m.shares+'</td>'
+        +'<td>'+m.monthly+'</td>'
+        +'<td>'+(m.payMethod||m.payment||'—')+'</td>'
+        +'<td>'+m.joinDate+'</td>'
+        +'<td>'+(agreed==='হ্যাঁ'||agreed===true||agreed==='true'?'<span class="tag ok">✓ হ্যাঁ</span>':'<span class="tag miss">'+agreed+'</span>')+'</td>'
+        +'</tr>';
+    });
     mH+='</tbody></table>';
     document.getElementById('adm-mem').innerHTML=mH;
 
     // Payments table — শুধু অনুমোদিত জমা দেখাবে
+    var payThStyle='style="background:#7a5c00;color:#f0d080;padding:9px 10px;font-size:0.74rem;font-weight:700;text-align:left;white-space:nowrap;"';
     var approvedOnly=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
-    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    var pH='<table><thead><tr>'
+      +'<th '+payThStyle+'>সদস্য</th>'
+      +'<th '+payThStyle+'>মাস</th>'
+      +'<th '+payThStyle+'>পরিমাণ</th>'
+      +'<th '+payThStyle+'>পদ্ধতি</th>'
+      +'<th '+payThStyle+'>TXN</th>'
+      +'<th '+payThStyle+'>তারিখ</th>'
+      +'<th '+payThStyle+'>অবস্থা</th>'
+      +'</tr></thead><tbody>';
     if(approvedOnly.length===0){pH+='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো অনুমোদিত জমা নেই</td></tr>';}
     else approvedOnly.forEach(function(p){
       pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
@@ -887,8 +922,17 @@ function refreshCalendarAndStats(){
     document.getElementById('adm-cal').innerHTML=cHtml;
 
     // সকল জমার তালিকাও আপডেট — শুধু অনুমোদিত
+    var payThStyle2='style="background:#7a5c00;color:#f0d080;padding:9px 10px;font-size:0.74rem;font-weight:700;text-align:left;white-space:nowrap;"';
     var approvedOnly=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
-    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    var pH='<table><thead><tr>'
+      +'<th '+payThStyle2+'>সদস্য</th>'
+      +'<th '+payThStyle2+'>মাস</th>'
+      +'<th '+payThStyle2+'>পরিমাণ</th>'
+      +'<th '+payThStyle2+'>পদ্ধতি</th>'
+      +'<th '+payThStyle2+'>TXN</th>'
+      +'<th '+payThStyle2+'>তারিখ</th>'
+      +'<th '+payThStyle2+'>অবস্থা</th>'
+      +'</tr></thead><tbody>';
     if(approvedOnly.length===0){pH+='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো অনুমোদিত জমা নেই</td></tr>';}
     else approvedOnly.forEach(function(p){
       pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
