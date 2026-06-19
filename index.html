@@ -645,8 +645,14 @@ function loadMyLedger(name){
     var pays=r.payments||[];
     var mem=r.members&&r.members[0]||ledMember;
     var sh=parseInt(mem.shares)||1;
-    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
-    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+
+    // শুধু অনুমোদিত জমা গণনায় ধরা হবে
+    var approvedPays=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+    var pendingApprovalPays=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অপেক্ষমান';});
+    var rejectedPays=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='বাতিল';});
+
+    var total=approvedPays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=approvedPays.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
     // Generate expected months since join
     var now=new Date();
@@ -658,12 +664,13 @@ function loadMyLedger(name){
       expectedMonths.push(MNS[d.getMonth()]+' '+d.getFullYear());
       d.setMonth(d.getMonth()+1);
     }
+    // শুধু অনুমোদিত জমার মাসগুলো পরিশোধিত হিসেবে গণ্য
     var paidSet={};
-    pays.forEach(function(p){paidSet[p.payMonth]=p.status;});
+    approvedPays.forEach(function(p){paidSet[p.payMonth]=p.status;});
     var pending=expectedMonths.filter(function(m){return !paidSet[m];});
 
     var html='<div class="scards">';
-    html+='<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা দিয়েছি</div></div>';
+    html+='<div class="scard grn"><div class="sv">'+approvedPays.length+'</div><div class="sl">অনুমোদিত জমা</div></div>';
     html+='<div class="scard rd"><div class="sv">'+pending.length+'</div><div class="sl">বাকি মাস</div></div>';
     html+='<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট টাকা জমা</div></div>';
     html+='<div class="scard bl"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত জমা</div></div>';
@@ -672,11 +679,19 @@ function loadMyLedger(name){
     if(pending.length>0){
       html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:0.83rem;color:#b91c1c;"><strong>⚠️ বাকি মাস:</strong> '+pending.join(', ')+'</div>';
     }
+    if(pendingApprovalPays.length>0){
+      html+='<div style="background:#fefce8;border:1px solid #fde047;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:0.83rem;color:#854d0e;"><strong>⏳ অনুমোদন অপেক্ষমান:</strong> '+pendingApprovalPays.map(function(p){return p.payMonth;}).join(', ')+'<br><span style="font-size:0.76rem;">অ্যাডমিন অনুমোদন দিলে এই মাসগুলো জমা হিসেবে গণ্য হবে।</span></div>';
+    }
+    if(rejectedPays.length>0){
+      html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:0.83rem;color:#b91c1c;"><strong>❌ বাতিলকৃত জমা:</strong> '+rejectedPays.map(function(p){return p.payMonth;}).join(', ')+'<br><span style="font-size:0.76rem;">রিসিভে সমস্যা থাকায় বাতিল হয়েছে। আবার জমা দিন।</span></div>';
+    }
 
-    html+='<div class="ptw"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
-    if(pays.length===0){html+='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো জমা নেই</td></tr>';}
+    html+='<div class="ptw"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>জমার অবস্থা</th><th>অনুমোদন</th></tr></thead><tbody>';
+    if(pays.length===0){html+='<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো জমা নেই</td></tr>';}
     else pays.forEach(function(p){
-      html+='<tr><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
+      var appr=p.approval||'অপেক্ষমান';
+      var apprCls=appr==='অনুমোদিত'?'ok':appr==='বাতিল'?'miss':'late';
+      html+='<tr><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td><td><span class="tag '+apprCls+'">'+appr+'</span></td></tr>';
     });
     html+='</tbody></table></div>';
     document.getElementById('led-data').innerHTML=html;
@@ -719,13 +734,14 @@ function loadAdminData(){
     document.getElementById('adm-lb').style.display='none';
     document.getElementById('adm-data').style.display='block';
     var mems=r.members||[]; var pays=r.payments||[];
-    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
-    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+    var approvedPaysAll=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+    var total=approvedPaysAll.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=approvedPaysAll.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
     // Stats
     document.getElementById('adm-stats').innerHTML=
       '<div class="scard bl"><div class="sv">'+mems.length+'</div><div class="sl">মোট সদস্য</div></div>'+
-      '<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা</div></div>'+
+      '<div class="scard grn"><div class="sv">'+approvedPaysAll.length+'</div><div class="sl">অনুমোদিত জমা</div></div>'+
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
       '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
 
@@ -741,10 +757,25 @@ function loadAdminData(){
       var mt=0;
       mths.forEach(function(mo){
         var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
-        if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
-        else cHtml+='<td><span class="tag miss">✗</span></td>';
+        if(p){
+          var appr=p.approval||'অপেক্ষমান';
+          if(appr==='অনুমোদিত'){
+            mt+=(parseInt(p.amount)||0);
+            cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';
+          } else if(appr==='বাতিল'){
+            cHtml+='<td><span class="tag miss">বাতিল</span></td>';
+          } else {
+            cHtml+='<td><span class="tag late">⏳</span></td>';
+          }
+        } else {
+          cHtml+='<td><span class="tag miss">✗</span></td>';
+        }
       });
-      var pendCount=mths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
+      // শুধু অনুমোদিত জমা না থাকা মাস গণনা করা হবে
+      var pendCount=mths.filter(function(mo){
+        var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
+        return !p || (p.approval||'অপেক্ষমান')!=='অনুমোদিত';
+      }).length;
       cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
     });
     cHtml+='</tbody></table></div>';
