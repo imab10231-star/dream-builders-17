@@ -764,8 +764,8 @@ function loadAdminData(){
     pH+='</tbody></table>';
     document.getElementById('adm-pay').innerHTML=pH;
 
-    // Receipts table — সরাসরি ছবি/লিংক দেখা
-    var rH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>তারিখ</th><th>রিসিভ কপি</th></tr></thead><tbody>';
+    // Receipts table — Approve/Reject সহ
+    var rH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>তারিখ</th><th>রিসিভ কপি</th><th>অবস্থা</th><th>ব্যবস্থা</th></tr></thead><tbody>';
     pays.forEach(function(p){
       var url=p.receiptUrl||'—';
       var linkHtml='—';
@@ -774,7 +774,14 @@ function loadAdminData(){
       } else if(url==='আপলোড ব্যর্থ'){
         linkHtml='<span style="color:#b91c1c;">আপলোড ব্যর্থ</span>';
       }
-      rH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.submitDate+'</td><td>'+linkHtml+'</td></tr>';
+      var appr = p.approval || 'অপেক্ষমান';
+      var tagCls = appr==='অনুমোদিত'?'ok':appr==='বাতিল'?'miss':'late';
+      var actionHtml = '—';
+      if(appr==='অপেক্ষমান'){
+        actionHtml = '<button onclick="approvePay('+p.rowIndex+')" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'+
+                     '<button onclick="rejectPay('+p.rowIndex+')" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">❌ বাতিল</button>';
+      }
+      rH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.submitDate+'</td><td>'+linkHtml+'</td><td><span class="tag '+tagCls+'">'+appr+'</span></td><td>'+actionHtml+'</td></tr>';
     });
     rH+='</tbody></table>';
     document.getElementById('adm-receipts').innerHTML=rH;
@@ -791,6 +798,23 @@ function loadAdminData(){
       document.getElementById('rem-pending-list').innerHTML='<div style="font-size:0.82rem;color:var(--tm);margin-bottom:6px;"><strong>'+curLabel+'</strong> মাসের জমা বাকি ('+pendingMembers.length+' জন):</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+pendingMembers.map(function(m){return '<span class="tag late">'+m.name+'</span>';}).join('')+'</div>';
     }
   },function(){document.getElementById('adm-lb').textContent='তথ্য লোড করতে সমস্যা।';});
+}
+
+// ── জমা অনুমোদন/বাতিল ──
+function approvePay(rowIndex){
+  if(!confirm('এই জমা অনুমোদন করতে চান?')) return;
+  xhrPost({action:'approvePayment',rowIndex:rowIndex},function(r){
+    if(r.status==='success'){ alert('✅ অনুমোদন সম্পন্ন হয়েছে।'); loadAdminData(); }
+    else alert('সমস্যা হয়েছে।');
+  },function(){alert('সংযোগ সমস্যা।');});
+}
+function rejectPay(rowIndex){
+  var reason=prompt('বাতিলের কারণ লিখুন (ঐচ্ছিক):','রিসিভ কপিতে সমস্যা');
+  if(reason===null) return;
+  xhrPost({action:'rejectPayment',rowIndex:rowIndex,reason:reason},function(r){
+    if(r.status==='success'){ alert('❌ বাতিল করা হয়েছে।'); loadAdminData(); }
+    else alert('সমস্যা হয়েছে।');
+  },function(){alert('সংযোগ সমস্যা।');});
 }
 
 // ── বাকি সদস্যদের একসাথে রিমাইন্ডার পাঠানো ──
