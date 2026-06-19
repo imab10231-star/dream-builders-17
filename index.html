@@ -795,26 +795,27 @@ function loadAdminData(){
     pH+='</tbody></table>';
     document.getElementById('adm-pay').innerHTML=pH;
 
-    // Receipts table — Approve/Reject সহ
-    var rH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>তারিখ</th><th>রিসিভ কপি</th><th>অবস্থা</th><th>ব্যবস্থা</th></tr></thead><tbody>';
-    pays.forEach(function(p){
-      var url=p.receiptUrl||'—';
-      var linkHtml='—';
-      if(url && url!=='—' && url!=='আপলোড ব্যর্থ'){
-        linkHtml='<a href="'+url+'" target="_blank" style="color:#1d4ed8;font-weight:600;">📄 দেখুন</a>';
-      } else if(url==='আপলোড ব্যর্থ'){
-        linkHtml='<span style="color:#b91c1c;">আপলোড ব্যর্থ</span>';
-      }
-      var appr = p.approval || 'অপেক্ষমান';
-      var tagCls = appr==='অনুমোদিত'?'ok':appr==='বাতিল'?'miss':'late';
-      var actionHtml = '—';
-      if(appr==='অপেক্ষমান'){
-        actionHtml = '<button onclick="approvePay('+p.rowIndex+')" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'+
-                     '<button onclick="rejectPay('+p.rowIndex+')" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">❌ বাতিল</button>';
-      }
-      rH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.submitDate+'</td><td>'+linkHtml+'</td><td><span class="tag '+tagCls+'">'+appr+'</span></td><td>'+actionHtml+'</td></tr>';
-    });
-    rH+='</tbody></table>';
+    // Receipts table — শুধু অপেক্ষমান জমা দেখাবে
+    var pendingPays=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অপেক্ষমান';});
+    var rH='';
+    if(pendingPays.length===0){
+      rH='<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:18px;text-align:center;font-size:0.85rem;color:#15803d;">&#x2705; কোনো অপেক্ষমান রিসিভ কপি নেই।</div>';
+    } else {
+      rH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>তারিখ</th><th>রিসিভ কপি</th><th>ব্যবস্থা</th></tr></thead><tbody>';
+      pendingPays.forEach(function(p){
+        var url=p.receiptUrl||'';
+        var linkHtml='—';
+        if(url && url!=='আপলোড ব্যর্থ'){
+          linkHtml='<a href="'+url+'" target="_blank" style="color:#1d4ed8;font-weight:600;">&#x1F4C4; দেখুন</a>';
+        } else if(url==='আপলোড ব্যর্থ'){
+          linkHtml='<span style="color:#b91c1c;">আপলোড ব্যর্থ</span>';
+        }
+        var actionHtml='<button onclick="approvePay('+p.rowIndex+',this)" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">&#x2705; অনুমোদন</button>'+
+                       '<button onclick="rejectPay('+p.rowIndex+',this)" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">&#x274C; বাতিল</button>';
+        rH+='<tr id="receipt-row-'+p.rowIndex+'"><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.submitDate+'</td><td>'+linkHtml+'</td><td>'+actionHtml+'</td></tr>';
+      });
+      rH+='</tbody></table>';
+    }
     document.getElementById('adm-receipts').innerHTML=rH;
 
     // রিমাইন্ডার সেকশনের জন্য বাকি সদস্যদের তালিকা (চলতি মাসের ভিত্তিতে)
@@ -832,20 +833,82 @@ function loadAdminData(){
 }
 
 // ── জমা অনুমোদন/বাতিল ──
-function approvePay(rowIndex){
-  if(!confirm('এই জমা অনুমোদন করতে চান?')) return;
-  xhrPost({action:'approvePayment',rowIndex:rowIndex},function(r){
-    if(r.status==='success'){ alert('✅ অনুমোদন সম্পন্ন হয়েছে।'); loadAdminData(); }
-    else alert('সমস্যা হয়েছে।');
-  },function(){alert('সংযোগ সমস্যা।');});
+function removeReceiptRow(rowIndex){
+  var row=document.getElementById('receipt-row-'+rowIndex);
+  if(row) row.parentNode.removeChild(row);
+  // যদি তালিকা ফাঁকা হয়ে যায় তাহলে "কোনো অপেক্ষমান নেই" দেখাও
+  var tbody=document.querySelector('#adm-receipts tbody');
+  if(tbody && tbody.rows.length===0){
+    document.getElementById('adm-receipts').innerHTML='<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:18px;text-align:center;font-size:0.85rem;color:#15803d;">&#x2705; কোনো অপেক্ষমান রিসিভ কপি নেই।</div>';
+  }
 }
-function rejectPay(rowIndex){
+
+function refreshCalendarAndStats(){
+  // শুধু ক্যালেন্ডার ও stats রিফ্রেশ করবে — পুরো page নয়
+  xhrPost({action:'getData'},function(r){
+    var mems=r.members||[]; var pays=r.payments||[];
+    var approvedPaysAll=pays.filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+    var total=approvedPaysAll.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=approvedPaysAll.filter(function(p){return p.status==='বিলম্বিত';}).length;
+    // Stats আপডেট
+    document.getElementById('adm-stats').innerHTML=
+      '<div class="scard bl"><div class="sv">'+mems.length+'</div><div class="sl">মোট সদস্য</div></div>'+
+      '<div class="scard grn"><div class="sv">'+approvedPaysAll.length+'</div><div class="sl">অনুমোদিত জমা</div></div>'+
+      '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
+      '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
+    // Calendar আপডেট
+    var now=new Date(); var mths=[];
+    var startMonth=now.getMonth()>=5?5:0;
+    for(var mi=startMonth;mi<=now.getMonth();mi++){mths.push({m:mi,y:now.getFullYear(),label:MNS[mi]+' '+now.getFullYear()});}
+    var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
+    mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
+    cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
+    mems.forEach(function(m){
+      cHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
+      var mt=0;
+      mths.forEach(function(mo){
+        var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
+        if(p){
+          var appr=p.approval||'অপেক্ষমান';
+          if(appr==='অনুমোদিত'){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
+          else if(appr==='বাতিল'){cHtml+='<td><span class="tag miss">বাতিল</span></td>';}
+          else{cHtml+='<td><span class="tag late">⏳</span></td>';}
+        } else cHtml+='<td><span class="tag miss">✗</span></td>';
+      });
+      var pendCount=mths.filter(function(mo){var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});return !p||(p.approval||'অপেক্ষমান')!=='অনুমোদিত';}).length;
+      cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
+    });
+    cHtml+='</tbody></table></div>';
+    document.getElementById('adm-cal').innerHTML=cHtml;
+  },function(){});
+}
+
+function approvePay(rowIndex, btn){
+  if(!confirm('এই জমা অনুমোদন করতে চান?')) return;
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  xhrPost({action:'approvePayment',rowIndex:rowIndex},function(r){
+    if(r.status==='success'){
+      removeReceiptRow(rowIndex);
+      refreshCalendarAndStats();
+    } else {
+      alert('সমস্যা হয়েছে।');
+      if(btn){btn.disabled=false;btn.innerHTML='&#x2705; অনুমোদন';}
+    }
+  },function(){alert('সংযোগ সমস্যা।');if(btn){btn.disabled=false;btn.innerHTML='&#x2705; অনুমোদন';}});
+}
+
+function rejectPay(rowIndex, btn){
   var reason=prompt('বাতিলের কারণ লিখুন (ঐচ্ছিক):','রিসিভ কপিতে সমস্যা');
   if(reason===null) return;
+  if(btn){btn.disabled=true;btn.textContent='...';}
   xhrPost({action:'rejectPayment',rowIndex:rowIndex,reason:reason},function(r){
-    if(r.status==='success'){ alert('❌ বাতিল করা হয়েছে।'); loadAdminData(); }
-    else alert('সমস্যা হয়েছে।');
-  },function(){alert('সংযোগ সমস্যা।');});
+    if(r.status==='success'){
+      removeReceiptRow(rowIndex);
+    } else {
+      alert('সমস্যা হয়েছে।');
+      if(btn){btn.disabled=false;btn.innerHTML='&#x274C; বাতিল';}
+    }
+  },function(){alert('সংযোগ সমস্যা।');if(btn){btn.disabled=false;btn.innerHTML='&#x274C; বাতিল';}});
 }
 
 // ── বাকি সদস্যদের একসাথে রিমাইন্ডার পাঠানো ──
