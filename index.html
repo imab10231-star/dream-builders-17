@@ -867,13 +867,17 @@ function loadAdminData(){
     document.getElementById('adm-lb').style.display='none';
     document.getElementById('adm-data').style.display='block';
     var mems=r.members||[]; var pays=r.payments||[];
-    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
-    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+    // শুধু অনুমোদিত জমা গণনায় আসবে
+    var approvedPays=pays.filter(function(p){return p.approval==='অনুমোদিত';});
+    var pendingPays=pays.filter(function(p){return p.approval==='অপেক্ষমান'||p.approval==='অপেক্ষমাণ';});
+    var cancelledPays=pays.filter(function(p){return p.approval==='বাতিল';});
+    var total=approvedPays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=approvedPays.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
-    // Stats
+    // Stats — শুধু অনুমোদিত জমা দেখাবে
     document.getElementById('adm-stats').innerHTML=
       '<div class="scard bl"><div class="sv">'+mems.length+'</div><div class="sl">মোট সদস্য</div></div>'+
-      '<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা</div></div>'+
+      '<div class="scard grn"><div class="sv">'+approvedPays.length+'</div><div class="sl">অনুমোদিত জমা</div></div>'+
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
       '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
 
@@ -883,8 +887,9 @@ function loadAdminData(){
     var cHtml='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>শেয়ার</th>';
     mths.forEach(function(mo){cHtml+='<th>'+MNS[mo.m]+'<br><small>'+mo.y+'</small></th>';});
     cHtml+='<th>মোট জমা</th><th>বাকি মাস</th></tr></thead><tbody>';
-    mems.forEach(function(m){
-      cHtml+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
+    mems.forEach(function(m,idx){
+      var hidden=idx>=3?' class="cal-extra-row" style="display:none;"':'';
+      cHtml+='<tr'+hidden+'><td><strong>'+m.name+'</strong></td><td>'+m.shares+'</td>';
       var mt=0;
       mths.forEach(function(mo){
         var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
@@ -900,6 +905,11 @@ function loadAdminData(){
       cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
     });
     cHtml+='</tbody></table></div>';
+    if(mems.length>3){
+      cHtml+='<div style="text-align:center;margin-top:10px;">'
+        +'<button id="cal-toggle-btn" onclick="toggleCalRows()" style="background:#fff;border:1.5px solid var(--bdr);border-radius:8px;padding:8px 22px;font-family:\'Hind Siliguri\',sans-serif;font-size:0.82rem;font-weight:600;color:var(--gm);cursor:pointer;">▼ আরও '+(mems.length-3)+' জন দেখুন</button>'
+        +'</div>';
+    }
     document.getElementById('adm-cal').innerHTML=cHtml;
 
     // Members table
@@ -908,30 +918,51 @@ function loadAdminData(){
     mH+='</tbody></table>';
     document.getElementById('adm-mem').innerHTML=mH;
 
-    // Payments table
-    var pendingPays=pays.filter(function(p){return p.approval==='অপেক্ষমান'||p.approval==='অপেক্ষমাণ';});
+    // Payments table — বাতিল বাদে বাকি সব
+    var visiblePays=pays.filter(function(p){return p.approval!=='বাতিল';});
+    var pendingPaysList=visiblePays.filter(function(p){return p.approval==='অপেক্ষমান'||p.approval==='অপেক্ষমাণ';});
     var pH='';
-    if(pendingPays.length>0){
-      pH+='<div style="background:#fef9c3;border:1px solid #fde047;border-radius:9px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:#854d0e;">⏳ <strong>'+pendingPays.length+'টি</strong> জমার অনুমোদন বাকি আছে।</div>';
+    if(pendingPaysList.length>0){
+      pH+='<div style="background:#fef9c3;border:1px solid #fde047;border-radius:9px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:#854d0e;">⏳ <strong>'+pendingPaysList.length+'টি</strong> জমার অনুমোদন বাকি আছে।</div>';
     }
-    pH+='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>রিসিভ</th><th>অনুমোদন স্ট্যাটাস</th><th>ব্যবস্থা</th></tr></thead><tbody>';
-    pays.forEach(function(p){
-      var isPending=(p.approval==='অপেক্ষমান'||p.approval==='অপেক্ষমাণ');
-      var isApproved=(p.approval==='অনুমোদিত');
-      var isCancelled=(p.approval==='বাতিল');
-      var statusCls=isApproved?'ok':isCancelled?'miss':'late';
-      var statusLbl=isApproved?p.status:isCancelled?'বাতিল':'⏳ অপেক্ষমাণ';
-      var receiptHtml=(p.receiptUrl&&p.receiptUrl!=='—')?'<a href="'+p.receiptUrl+'" target="_blank" style="font-size:0.74rem;color:#1d4ed8;">📄 দেখুন</a>':'—';
-      var actionHtml='';
-      if(isPending){
-        actionHtml='<button onclick="adminPayAction(\''+p.rowIndex+'\',\'approve\',\''+p.memberName+'\',\''+p.payMonth+'\',\''+p.isLate+'\')" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'
-                  +'<button onclick="adminPayAction(\''+p.rowIndex+'\',\'reject\',\''+p.memberName+'\',\''+p.payMonth+'\',\''+p.isLate+'\')" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">❌ বাতিল</button>';
-      } else {
-        actionHtml='<span style="font-size:0.75rem;color:#6b7280;">'+p.approval+'</span>';
+    if(visiblePays.length===0){
+      pH+='<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:18px;text-align:center;font-size:0.85rem;color:#15803d;">এখনো কোনো জমা নেই।</div>';
+    } else {
+      pH+='<div class="big-table-wrap"><table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>রিসিভ</th><th>অনুমোদন স্ট্যাটাস</th><th>ব্যবস্থা</th></tr></thead><tbody>';
+      visiblePays.forEach(function(p,idx){
+        var isPending=(p.approval==='অপেক্ষমান'||p.approval==='অপেক্ষমাণ');
+        var isApproved=(p.approval==='অনুমোদিত');
+        var statusCls=isApproved?'ok':'late';
+        var statusLbl=isApproved?p.status:'⏳ অপেক্ষমাণ';
+        var receiptHtml=(p.receiptUrl&&p.receiptUrl!=='—')?'<a href="'+p.receiptUrl+'" target="_blank" style="font-size:0.74rem;color:#1d4ed8;">📄 দেখুন</a>':'—';
+        var actionHtml='';
+        if(isPending){
+          actionHtml='<button onclick="adminPayAction(\''+p.rowIndex+'\',\'approve\',\''+p.memberName+'\',\''+p.payMonth+'\',\''+p.isLate+'\')" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'
+                    +'<button onclick="adminPayAction(\''+p.rowIndex+'\',\'reject\',\''+p.memberName+'\',\''+p.payMonth+'\',\''+p.isLate+'\')" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">❌ বাতিল</button>';
+        } else {
+          actionHtml='<span style="font-size:0.75rem;color:#15803d;font-weight:600;">✅ '+p.approval+'</span>';
+        }
+        var hidden=idx>=3?' class="pay-extra-row" style="display:none;"':'';
+        pH+='<tr id="pay-row-'+(p.rowIndex||'')+'"'+hidden+'><td><strong>'+p.memberName+'</strong></td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td>'+receiptHtml+'</td><td><span class="tag '+statusCls+'">'+statusLbl+'</span></td><td>'+actionHtml+'</td></tr>';
+      });
+      pH+='</tbody></table></div>';
+      if(visiblePays.length>3){
+        pH+='<div style="text-align:center;margin-top:10px;">'
+          +'<button id="pay-toggle-btn" onclick="togglePayRows()" style="background:#fff;border:1.5px solid var(--bdr);border-radius:8px;padding:8px 22px;font-family:\'Hind Siliguri\',sans-serif;font-size:0.82rem;font-weight:600;color:var(--gm);cursor:pointer;">▼ আরও '+(visiblePays.length-3)+' টি জমা দেখুন</button>'
+          +'</div>';
       }
-      pH+='<tr id="pay-row-'+(p.rowIndex||'')+'"><td><strong>'+p.memberName+'</strong></td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td>'+receiptHtml+'</td><td><span class="tag '+statusCls+'">'+statusLbl+'</span></td><td>'+actionHtml+'</td></tr>';
-    });
-    pH+='</tbody></table></div>';
+    }
+    // বাতিল জমাগুলো আলাদা সেকশনে
+    if(cancelledPays.length>0){
+      pH+='<div style="margin-top:16px;">'
+        +'<details><summary style="cursor:pointer;font-size:0.78rem;font-weight:600;color:#b91c1c;padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;list-style:none;">❌ বাতিল হওয়া জমা ('+cancelledPays.length+'টি) — দেখতে ক্লিক করুন</summary>'
+        +'<div class="big-table-wrap" style="margin-top:8px;"><table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>রিসিভ</th></tr></thead><tbody>';
+      cancelledPays.forEach(function(p){
+        var receiptHtml=(p.receiptUrl&&p.receiptUrl!=='—')?'<a href="'+p.receiptUrl+'" target="_blank" style="font-size:0.74rem;color:#1d4ed8;">📄 দেখুন</a>':'—';
+        pH+='<tr style="opacity:0.6;"><td><strong>'+p.memberName+'</strong></td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td>'+receiptHtml+'</td></tr>';
+      });
+      pH+='</tbody></table></div></details></div>';
+    }
     document.getElementById('adm-pay').innerHTML=pH;
 
     // Loan table
@@ -981,6 +1012,22 @@ function loadAdminData(){
     document.getElementById('adm-loans').innerHTML=lHtml;
 
   },function(){document.getElementById('adm-lb').textContent='তথ্য লোড করতে সমস্যা।';});
+}
+
+function toggleCalRows(){
+  var rows=document.querySelectorAll('.cal-extra-row');
+  var btn=document.getElementById('cal-toggle-btn');
+  var isHidden=rows[0]&&rows[0].style.display==='none';
+  rows.forEach(function(r){r.style.display=isHidden?'':'none';});
+  btn.textContent=isHidden?'▲ কম দেখুন':'▼ আরও '+rows.length+' জন দেখুন';
+}
+
+function togglePayRows(){
+  var rows=document.querySelectorAll('.pay-extra-row');
+  var btn=document.getElementById('pay-toggle-btn');
+  var isHidden=rows[0]&&rows[0].style.display==='none';
+  rows.forEach(function(r){r.style.display=isHidden?'':'none';});
+  btn.textContent=isHidden?'▲ কম দেখুন':'▼ আরও '+rows.length+' টি জমা দেখুন';
 }
 
 function adminPayAction(rowIndex,action,memberName,payMonth,isLate){
