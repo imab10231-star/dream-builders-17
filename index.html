@@ -467,6 +467,19 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 
 <div class="footer"><strong>Dream Builders 17 – SSC ব্যাচ ২০১৭</strong><br>বিশ্বাস · সহযোগিতা · সমৃদ্ধি</div>
 
+<!-- রিসিভ ভিউ মডাল -->
+<div id="receipt-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeReceiptModal();">
+  <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <strong id="rcpt-modal-title" style="font-size:0.9rem;color:var(--gd);"></strong>
+      <button onclick="closeReceiptModal()" style="background:#eee;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:0.85rem;">✕</button>
+    </div>
+    <img id="rcpt-modal-img" style="display:none;max-width:100%;border-radius:8px;">
+    <a id="rcpt-modal-pdf" href="#" target="_blank" style="display:none;color:#1d4ed8;font-weight:600;">📄 PDF রিসিভ খুলুন (নতুন ট্যাবে)</a>
+  </div>
+</div>
+
+
 <script>
 var SURL = "https://script.google.com/macros/s/AKfycbyhmwLX5Gvl3jlIpzqTiJ3T5HT0O_HqLqrVpfGQ2jpBDJdMHB1sqwS6FH8aV-dziHy3ng/exec";
 var MNS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
@@ -496,6 +509,12 @@ function showSubTab(st){
 }
 
 function pad(n){return n<10?'0'+n:''+n;}
+
+// পেমেন্ট অনুমোদন স্ট্যাটাস হেল্পার — পুরনো ডাটা (approvalStatus নেই) মানে আগেই গৃহীত/অনুমোদিত
+function payApprovalStatus(p){return p.approvalStatus||'অনুমোদিত';}
+function payIsApproved(p){return payApprovalStatus(p)==='অনুমোদিত';}
+function payIsRejected(p){return payApprovalStatus(p)==='বাতিল';}
+function payTagCls(p){var s=payApprovalStatus(p);return s==='বাতিল'?'miss':(s==='অপেক্ষমাণ'?'late':'ok');}
 
 function xhrPost(data,ok,err){
   var x=new XMLHttpRequest();
@@ -645,11 +664,12 @@ async function submitPayment(){
   }
 
   var isLate=(sm!==now.getMonth()||sy!==now.getFullYear());
-  xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',receipt:recB64},
+  xhrPost({action:'payment',memberName:curMember.name,memberPhone:curMember.phone,memberEmail:curMember.email,shares:curMember.shares,payMonth:MNS[sm]+' '+sy,amount:(sh*1000)+' টাকা',method:mt,txn:document.getElementById('p-tx').value.trim()||'—',note:document.getElementById('p-nt').value.trim()||'—',submitDate:ds,status:isLate?'বিলম্বিত':'সময়মতো',approvalStatus:'অপেক্ষমাণ',receipt:recB64},
   function(){
     document.getElementById('pay-up').style.display='none';
     document.getElementById('pay-done').style.display='block';
-    if(isLate){document.getElementById('pd-t').textContent='জমা গৃহীত হয়েছে (বিলম্বিত)';document.getElementById('pd-m').textContent=MNS[sm]+' মাসের জমা বিলম্বিত হিসেবে রেকর্ড হয়েছে।';}
+    document.getElementById('pd-t').textContent='রিসিভ জমা হয়েছে — অনুমোদনের অপেক্ষায়';
+    document.getElementById('pd-m').textContent=(isLate?MNS[sm]+' মাসের জমা বিলম্বিত হিসেবে রেকর্ড হয়েছে এবং ':'')+'অ্যাডমিন আপনার রিসিভ যাচাই করে অনুমোদন করবেন। "জমার হিসাব" ট্যাবে স্ট্যাটাস দেখতে পারবেন।';
   },function(){document.getElementById('pay-up').style.display='none';document.getElementById('pay-done').style.display='block';});
 }
 
@@ -746,10 +766,10 @@ function loadMyLedger(name){
       html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:0.83rem;color:#b91c1c;"><strong>⚠️ বাকি মাস:</strong> '+pending.join(', ')+'</div>';
     }
 
-    html+='<div class="ptw"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
-    if(pays.length===0){html+='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো জমা নেই</td></tr>';}
+    html+='<div class="ptw"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>তারিখ</th><th>সময়</th><th>রিসিভ অবস্থা</th></tr></thead><tbody>';
+    if(pays.length===0){html+='<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;">এখনো কোনো জমা নেই</td></tr>';}
     else pays.forEach(function(p){
-      html+='<tr><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
+      html+='<tr><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td><td><span class="tag '+payTagCls(p)+'">'+payApprovalStatus(p)+'</span></td></tr>';
     });
     html+='</tbody></table></div>';
     document.getElementById('led-data').innerHTML=html;
@@ -862,15 +882,18 @@ function loadAdminData(){
     document.getElementById('adm-lb').style.display='none';
     document.getElementById('adm-data').style.display='block';
     var mems=r.members||[]; var pays=r.payments||[];
-    var total=pays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
-    var lateC=pays.filter(function(p){return p.status==='বিলম্বিত';}).length;
+    window._adminPaysCache=pays;
+    var approvedPays=pays.filter(payIsApproved);
+    var pendingPays=pays.filter(function(p){return payApprovalStatus(p)==='অপেক্ষমাণ';});
+    var total=approvedPays.reduce(function(s,p){return s+(parseInt(p.amount)||0);},0);
+    var lateC=approvedPays.filter(function(p){return p.status==='বিলম্বিত';}).length;
 
     // Stats
     document.getElementById('adm-stats').innerHTML=
       '<div class="scard bl"><div class="sv">'+mems.length+'</div><div class="sl">মোট সদস্য</div></div>'+
-      '<div class="scard grn"><div class="sv">'+pays.length+'</div><div class="sl">মোট জমা</div></div>'+
+      '<div class="scard grn"><div class="sv">'+approvedPays.length+'</div><div class="sl">অনুমোদিত জমা</div></div>'+
       '<div class="scard gld"><div class="sv">৳'+total.toLocaleString()+'</div><div class="sl">মোট সংগ্রহ</div></div>'+
-      '<div class="scard rd"><div class="sv">'+lateC+'</div><div class="sl">বিলম্বিত</div></div>';
+      '<div class="scard rd"><div class="sv">'+pendingPays.length+'</div><div class="sl">⏳ অনুমোদনের অপেক্ষায়</div></div>';
 
     // Big calendar
     var now=new Date(); var mths=[];
@@ -883,10 +906,12 @@ function loadAdminData(){
       var mt=0;
       mths.forEach(function(mo){
         var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});
-        if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
+        if(p&&payIsRejected(p)){cHtml+='<td><span class="tag miss">✗ বাতিল</span></td>';}
+        else if(p&&payApprovalStatus(p)==='অপেক্ষমাণ'){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag late">⏳ পেন্ডিং</span></td>';}
+        else if(p){mt+=(parseInt(p.amount)||0);cHtml+='<td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+(p.status==='বিলম্বিত'?'বিলম্ব':'✓')+'</span></td>';}
         else cHtml+='<td><span class="tag miss">✗</span></td>';
       });
-      var pendCount=mths.filter(function(mo){return !pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});}).length;
+      var pendCount=mths.filter(function(mo){var p=pays.find(function(p){return p.memberName===m.name&&p.payMonth===mo.label;});return !p||payIsRejected(p);}).length;
       cHtml+='<td><strong>৳'+mt.toLocaleString()+'</strong></td><td>'+(pendCount>0?'<span class="tag miss">'+pendCount+' মাস</span>':'<span class="tag ok">সব দিয়েছে</span>')+'</td></tr>';
     });
     cHtml+='</tbody></table></div>';
@@ -898,10 +923,19 @@ function loadAdminData(){
     mH+='</tbody></table>';
     document.getElementById('adm-mem').innerHTML=mH;
 
-    // Payments table
-    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>অবস্থা</th></tr></thead><tbody>';
+    // Payments table — রিসিভ অনুমোদন
+    var pH='<table><thead><tr><th>সদস্য</th><th>মাস</th><th>পরিমাণ</th><th>পদ্ধতি</th><th>TXN</th><th>তারিখ</th><th>সময়</th><th>রিসিভ</th><th>অনুমোদন স্ট্যাটাস</th><th>ব্যবস্থা</th></tr></thead><tbody>';
     pays.forEach(function(p){
-      pH+='<tr><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td></tr>';
+      var rcptBtn=p.receiptUrl?'<a href="'+p.receiptUrl+'" target="_blank" style="color:#1d4ed8;font-weight:600;">📄 দেখুন</a>':(p.receipt?'<button onclick="openReceiptModal(\''+p.rowIndex+'\')" style="background:#1d4ed8;color:#fff;border:none;padding:4px 8px;border-radius:5px;font-size:0.7rem;cursor:pointer;">📄 দেখুন</button>':'<span style="color:#9ca3af;">—</span>');
+      var apprSt=payApprovalStatus(p);
+      var actHtml='';
+      if(apprSt==='অপেক্ষমাণ'){
+        actHtml='<button onclick="adminPaymentAction(\''+p.rowIndex+'\',\'approve\',\''+p.memberName+'\',\''+p.payMonth+'\')" style="background:#15803d;color:#fff;border:none;padding:5px 9px;border-radius:5px;font-size:0.7rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'
+                 +'<button onclick="adminPaymentAction(\''+p.rowIndex+'\',\'reject\',\''+p.memberName+'\',\''+p.payMonth+'\')" style="background:#b91c1c;color:#fff;border:none;padding:5px 9px;border-radius:5px;font-size:0.7rem;cursor:pointer;">❌ বাতিল</button>';
+      } else {
+        actHtml='<span style="font-size:0.72rem;color:#6b7280;">সম্পন্ন</span>';
+      }
+      pH+='<tr id="pay-row-'+p.rowIndex+'"><td>'+p.memberName+'</td><td>'+p.payMonth+'</td><td>'+p.amount+'</td><td>'+p.method+'</td><td>'+p.txn+'</td><td>'+p.submitDate+'</td><td><span class="tag '+(p.status==='বিলম্বিত'?'late':'ok')+'">'+p.status+'</span></td><td>'+rcptBtn+'</td><td><span class="tag '+payTagCls(p)+'">'+apprSt+'</span></td><td>'+actHtml+'</td></tr>';
     });
     pH+='</tbody></table>';
     document.getElementById('adm-pay').innerHTML=pH;
@@ -979,6 +1013,56 @@ function adminLoanAction(rowIndex,action,memberName,amount){
       if(btn) btn.disabled=false;
     }
   },function(){alert('সংযোগ সমস্যা।');if(btn) btn.disabled=false;});
+}
+
+// ── রিসিভ অনুমোদন (পেমেন্ট) ──
+function adminPaymentAction(rowIndex,action,memberName,payMonth){
+  var note='';
+  if(action==='reject') note=prompt('বাতিলের কারণ (ঐচ্ছিক):')||'';
+  var now=new Date();
+  var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  var row=document.getElementById('pay-row-'+rowIndex);
+  if(row){var btns=row.querySelectorAll('button');btns.forEach(function(b){b.disabled=true;});}
+  xhrPost({
+    action:'paymentAction',
+    rowIndex:rowIndex,
+    paymentAction:action,
+    approvalStatus:action==='approve'?'অনুমোদিত':'বাতিল',
+    approveDate:ds,
+    adminNote:note,
+    memberName:memberName,
+    payMonth:payMonth
+  },function(r){
+    if(r.status==='ok'||r.status==='success'){
+      loadAdminData();
+    } else {
+      alert('সমস্যা হয়েছে: '+(r.message||''));
+      if(row){row.querySelectorAll('button').forEach(function(b){b.disabled=false;});}
+    }
+  },function(){alert('সংযোগ সমস্যা।');if(row){row.querySelectorAll('button').forEach(function(b){b.disabled=false;});}});
+}
+
+function openReceiptModal(rowIndex){
+  var pays=window._adminPaysCache||[];
+  var p=pays.find(function(x){return String(x.rowIndex)===String(rowIndex);});
+  if(!p||!p.receipt){alert('রিসিভ পাওয়া যায়নি।');return;}
+  var img=document.getElementById('rcpt-modal-img');
+  var pdfLink=document.getElementById('rcpt-modal-pdf');
+  if(p.receipt.indexOf('application/pdf')!==-1){
+    img.style.display='none';
+    pdfLink.style.display='block';
+    pdfLink.href=p.receipt;
+  } else {
+    pdfLink.style.display='none';
+    img.style.display='block';
+    img.src=p.receipt;
+  }
+  document.getElementById('rcpt-modal-title').textContent=p.memberName+' — '+p.payMonth;
+  document.getElementById('receipt-modal').style.display='flex';
+}
+
+function closeReceiptModal(){
+  document.getElementById('receipt-modal').style.display='none';
 }
 
 function changePassword(){
