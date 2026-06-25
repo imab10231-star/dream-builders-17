@@ -265,10 +265,19 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 <!-- TAB 3: PAYMENT -->
 <div id="tab-pay" class="tab-panel">
   <div class="fhero" style="background:linear-gradient(145deg,#1a3c2e,#7a5c00);">
-    <div class="badge" style="background:rgba(201,168,76,0.3);">মাসিক জমা</div>
-    <h2>💳 <span>মাসিক</span> জমা প্রদান</h2>
-    <p>আপনার পরিচয় যাচাই করুন এবং রিসিভ কপি আপলোড করুন।</p>
+    <div class="badge" style="background:rgba(201,168,76,0.3);">মাসিক জমা ও লোন</div>
+    <h2>💳 <span>মাসিক জমা</span> ও লোন আবেদন</h2>
+    <p>মাসিক জমা প্রদান করুন অথবা সুদমুক্ত লোনের আবেদন করুন।</p>
   </div>
+
+  <!-- সাব-ট্যাব বার -->
+  <div style="display:flex;background:#fff;border-bottom:2px solid var(--bdr);position:sticky;top:42px;z-index:90;">
+    <button id="subtab-pay-btn" onclick="showSubTab('pay')" style="flex:1;padding:11px 4px;border:none;background:transparent;font-family:'Hind Siliguri',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;border-bottom:3px solid var(--gm);color:var(--gd);">💳 মাসিক জমা</button>
+    <button id="subtab-loan-btn" onclick="showSubTab('loan')" style="flex:1;padding:11px 4px;border:none;background:transparent;font-family:'Hind Siliguri',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;color:#6b7280;">🤝 লোন আবেদন</button>
+  </div>
+
+  <!-- সাব-ট্যাব: মাসিক জমা -->
+  <div id="subtab-pay">
   <div class="fw">
     <div id="pay-login">
       <div class="login-box">
@@ -316,7 +325,64 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
       <button class="btn" style="margin-top:12px;max-width:170px;" onclick="resetPay()">🔄 নতুন জমা</button>
     </div>
   </div>
-</div>
+  </div><!-- /subtab-pay -->
+
+  <!-- সাব-ট্যাব: লোন আবেদন -->
+  <div id="subtab-loan" style="display:none;">
+  <div class="fw">
+    <div id="loan-login">
+      <div class="login-box">
+        <h3>🔐 পরিচয় যাচাই করুন</h3>
+        <p>শুধুমাত্র নিবন্ধিত সদস্যরা লোনের আবেদন করতে পারবেন।</p>
+        <div id="loan-lsb" class="sbar"><div class="spin"></div><span id="loan-lsm"></span></div>
+        <div class="field"><label>পূর্ণ নাম <span class="req">*</span></label><input type="text" id="ln-nm" placeholder="নিবন্ধিত নাম"></div>
+        <div class="field"><label>মোবাইল নম্বর অথবা ইমেইল <span class="req">*</span></label><input type="text" id="ln-ct" placeholder="01XXXXXXXXX অথবা email@gmail.com"></div>
+        <button class="btn" id="loan-l-btn" onclick="loanVerify()" style="margin-top:6px;background:linear-gradient(135deg,#1d4ed8,#1e3a8a);">🔍 পরিচয় যাচাই করুন</button>
+      </div>
+    </div>
+    <div id="loan-form" style="display:none;">
+      <div class="fc"><h3>👤 আবেদনকারীর তথ্য</h3><div id="loan-minf" style="background:#eff6ff;border-radius:7px;padding:11px;font-size:0.85rem;color:var(--tm);line-height:2;"></div></div>
+      <div class="fc">
+        <h3>💰 লোনের বিবরণ</h3>
+        <div class="field">
+          <label>লোনের পরিমাণ (টাকা) <span class="req">*</span></label>
+          <input type="number" id="ln-amt" placeholder="যে পরিমাণ লোন দরকার" min="1">
+        </div>
+        <div class="field">
+          <label>পরিশোধের মেয়াদ <span class="req">*</span></label>
+          <div class="sopts">
+            <div class="sopt"><input type="radio" name="lnm" id="lnm1" value="1"><label for="lnm1">১ মাস<span class="amt">দ্রুত পরিশোধ</span></label></div>
+            <div class="sopt"><input type="radio" name="lnm" id="lnm2" value="2"><label for="lnm2">২ মাস<span class="amt">মধ্যম মেয়াদ</span></label></div>
+            <div class="sopt"><input type="radio" name="lnm" id="lnm3" value="3"><label for="lnm3">৩ মাস<span class="amt">সর্বোচ্চ মেয়াদ</span></label></div>
+          </div>
+          <div class="emsg" id="lnm-err" style="display:none;">মেয়াদ নির্বাচন করুন</div>
+        </div>
+        <div class="field">
+          <label>লোনের উদ্দেশ্য / কারণ <span class="req">*</span></label>
+          <input type="text" id="ln-rsn" placeholder="সংক্ষেপে লোনের কারণ লিখুন">
+        </div>
+        <div class="field">
+          <label>অতিরিক্ত তথ্য (ঐচ্ছিক)</label>
+          <input type="text" id="ln-nt" placeholder="যেকোনো বাড়তি তথ্য">
+        </div>
+        <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:11px 13px;font-size:0.8rem;color:#1e40af;margin-bottom:12px;">
+          ℹ️ এই লোন সম্পূর্ণ <strong>সুদমুক্ত</strong>। অ্যাডমিন অনুমোদনের পর লোন প্রদান করা হবে।
+        </div>
+      </div>
+      <div id="loan-sb" class="sbar"><div class="spin"></div><span id="loan-sm"></span></div>
+      <button class="btn" id="loan-btn" onclick="submitLoan()" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);">🤝 লোনের আবেদন জমা করুন</button>
+    </div>
+    <div class="done-screen" id="loan-done">
+      <div class="done-icon">🤝</div>
+      <h3>লোনের আবেদন জমা হয়েছে!</h3>
+      <p>আপনার আবেদন অ্যাডমিনের কাছে পাঠানো হয়েছে। অনুমোদন হলে আপনাকে জানানো হবে।</p>
+      <div style="margin-top:14px;padding:10px;background:#eff6ff;border-radius:7px;font-size:0.8rem;color:#1e40af;">ধন্যবাদ! Dream Builders 17 🌿</div>
+      <button class="btn" style="margin-top:12px;max-width:200px;background:linear-gradient(135deg,#1d4ed8,#1e3a8a);" onclick="resetLoan()">🔄 নতুন আবেদন</button>
+    </div>
+  </div>
+  </div><!-- /subtab-loan -->
+
+</div><!-- /tab-pay -->
 
 <!-- TAB 4: LEDGER (নিজের হিসাব) -->
 <div id="tab-ledger" class="tab-panel">
@@ -413,6 +479,20 @@ function showTab(t){
   document.querySelectorAll('.tab-btn')[{rules:0,reg:1,pay:2,ledger:3,admin:4}[t]].classList.add('active');
   window.scrollTo(0,0);
   if(t==='pay') initPayMonths();
+}
+
+function showSubTab(st){
+  var isPay=(st==='pay');
+  document.getElementById('subtab-pay').style.display=isPay?'block':'none';
+  document.getElementById('subtab-loan').style.display=isPay?'none':'block';
+  var pb=document.getElementById('subtab-pay-btn');
+  var lb=document.getElementById('subtab-loan-btn');
+  pb.style.borderBottom=isPay?'3px solid var(--gm)':'3px solid transparent';
+  pb.style.color=isPay?'var(--gd)':'#6b7280';
+  pb.style.fontWeight=isPay?'700':'600';
+  lb.style.borderBottom=isPay?'3px solid transparent':'3px solid #1d4ed8';
+  lb.style.color=isPay?'#6b7280':'#1d4ed8';
+  lb.style.fontWeight=isPay?'600':'700';
 }
 
 function pad(n){return n<10?'0'+n:''+n;}
@@ -825,7 +905,80 @@ function loadAdminData(){
     });
     pH+='</tbody></table>';
     document.getElementById('adm-pay').innerHTML=pH;
+
+    // Loan table
+    var loans=r.loans||[];
+    var totalLoaned=loans.filter(function(l){return l.status==='অনুমোদিত';}).reduce(function(s,l){return s+(parseInt(l.amount)||0);},0);
+    var lHtml='';
+    if(loans.length===0){
+      lHtml='<div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:9px;padding:18px;text-align:center;font-size:0.85rem;color:#1e40af;">এখনো কোনো লোন আবেদন নেই।</div>';
+    } else {
+      // Stats banner
+      lHtml+='<div style="background:linear-gradient(135deg,#1e3a6e,#0f4c75);color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
+        +'<div><div style="font-size:0.72rem;color:rgba(255,255,255,0.7);">মোট লোন আবেদন</div><div style="font-size:1.4rem;font-weight:700;color:#f0d080;">'+loans.length+'টি</div></div>'
+        +'<div><div style="font-size:0.72rem;color:rgba(255,255,255,0.7);">অনুমোদিত লোন (বাদ)</div><div style="font-size:1.4rem;font-weight:700;color:#fca5a5;">৳'+totalLoaned.toLocaleString()+' টাকা</div></div>'
+        +'<div><div style="font-size:0.72rem;color:rgba(255,255,255,0.7);">নিট তহবিল</div><div style="font-size:1.4rem;font-weight:700;color:#86efac;">৳'+(total-totalLoaned).toLocaleString()+' টাকা</div></div>'
+        +'</div>';
+      lHtml+='<div class="big-table-wrap"><table><thead><tr>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">সদস্য</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">পরিমাণ</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">মেয়াদ</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">কারণ</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">আবেদনের তারিখ</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">অবস্থা</th>'
+        +'<th style="background:#1e3a6e;color:#f0d080;padding:9px 10px;font-size:0.74rem;">ব্যবস্থা</th>'
+        +'</tr></thead><tbody>';
+      loans.forEach(function(l){
+        var statusCls=l.status==='অনুমোদিত'?'ok':l.status==='বাতিল'?'miss':'late';
+        var actionHtml='';
+        if(l.status==='অপেক্ষমাণ'){
+          actionHtml='<button onclick="adminLoanAction(\''+l.rowIndex+'\',\'approve\',\''+l.memberName+'\','+l.amount+')" style="background:#15803d;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;margin-right:4px;">✅ অনুমোদন</button>'
+                    +'<button onclick="adminLoanAction(\''+l.rowIndex+'\',\'reject\',\''+l.memberName+'\','+l.amount+')" style="background:#b91c1c;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;">❌ বাতিল</button>';
+        } else {
+          actionHtml='<span style="font-size:0.75rem;color:#6b7280;">'+l.status+'</span>';
+          if(l.adminNote) actionHtml+='<br><span style="font-size:0.7rem;color:#9ca3af;">'+l.adminNote+'</span>';
+        }
+        lHtml+='<tr id="loan-row-'+l.rowIndex+'">'
+          +'<td style="padding:8px 10px;font-size:0.8rem;"><strong>'+l.memberName+'</strong><br><span style="font-size:0.72rem;color:#6b7280;">'+l.memberPhone+'</span></td>'
+          +'<td style="padding:8px 10px;font-size:0.8rem;font-weight:700;color:#1e3a6e;">৳'+parseInt(l.amount).toLocaleString()+'</td>'
+          +'<td style="padding:8px 10px;font-size:0.8rem;">'+l.duration+' মাস</td>'
+          +'<td style="padding:8px 10px;font-size:0.8rem;">'+l.reason+'</td>'
+          +'<td style="padding:8px 10px;font-size:0.8rem;">'+l.applyDate+'</td>'
+          +'<td style="padding:8px 10px;"><span class="tag '+statusCls+'">'+l.status+'</span></td>'
+          +'<td style="padding:8px 10px;">'+actionHtml+'</td>'
+          +'</tr>';
+      });
+      lHtml+='</tbody></table></div>';
+    }
+    document.getElementById('adm-loans').innerHTML=lHtml;
+
   },function(){document.getElementById('adm-lb').textContent='তথ্য লোড করতে সমস্যা।';});
+}
+
+function adminLoanAction(rowIndex,action,memberName,amount){
+  var note=prompt(action==='approve'?'অনুমোদনের মন্তব্য (ঐচ্ছিক):':'বাতিলের কারণ:')||'';
+  var now=new Date();
+  var ds=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  var btn=document.querySelector('#loan-row-'+rowIndex+' button');
+  if(btn) btn.disabled=true;
+  xhrPost({
+    action:'loanAction',
+    rowIndex:rowIndex,
+    loanAction:action,
+    adminNote:note,
+    approveDate:ds,
+    status:action==='approve'?'অনুমোদিত':'বাতিল',
+    memberName:memberName,
+    amount:amount,
+    deductReason: action==='approve'?memberName+'-কে লোন প্রদান ('+ds+')':''
+  },function(r){
+    if(r.status==='ok'||r.status==='success'){
+      loadAdminData();
+    } else {
+      alert('সমস্যা হয়েছে: '+(r.message||''));
+      if(btn) btn.disabled=false;
+    }
+  },function(){alert('সংযোগ সমস্যা।');if(btn) btn.disabled=false;});
 }
 
 function changePassword(){
