@@ -616,17 +616,15 @@ function verifyMember(){
   xhrPost({action:'verify',name:nm,contact:ct},function(r){
     if(r.status==='found'){
       curMember=r.member;
-      document.getElementById('m-inf').innerHTML='<strong>নাম:</strong> '+r.member.name+'<br><strong>মোবাইল:</strong> '+r.member.phone+'<br><strong>শেয়ার:</strong> '+r.member.shares+'&nbsp;&nbsp;<strong>মাসিক:</strong> '+(parseInt(r.member.shares)*1000)+' টাকা';
-      document.getElementById('pay-login').style.display='none';
-      document.getElementById('pay-up').style.display='block';
-      initPayMonths();
-      // সদস্যের জমার ইতিহাস লোড করো — ৩০ দিনের চেক সহ
+      // আগে data লোড করো, তারপর সিদ্ধান্ত নাও
+      sb('lsb','loading','জমার ইতিহাস যাচাই হচ্ছে...');
       xhrPost({action:'getData',memberName:r.member.name},function(d){
         window._myPayments = d.payments||[];
+        document.getElementById('lsb').style.display='none';
         // শেষ অনুমোদিত জমা ৩০ দিনের মধ্যে কিনা চেক করো
         var approvedPays=(d.payments||[]).filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+        var blocked=false;
         if(approvedPays.length>0){
-          // সবচেয়ে সাম্প্রতিক অনুমোদিত জমার তারিখ বের করো
           var latestDate=null;
           approvedPays.forEach(function(p){
             var parts=(p.submitDate||'').split('/');
@@ -637,33 +635,51 @@ function verifyMember(){
           });
           if(latestDate){
             var now2=new Date();
-            var diffDays=Math.floor((now2-latestDate)/(1000*60*60*24));
+            // সময়ের অংশ বাদ দিয়ে শুধু তারিখ তুলনা
+            var today=new Date(now2.getFullYear(),now2.getMonth(),now2.getDate());
+            var lastDay=new Date(latestDate.getFullYear(),latestDate.getMonth(),latestDate.getDate());
+            var diffDays=Math.floor((today-lastDay)/(1000*60*60*24));
             var remaining=30-diffDays;
             if(remaining>0){
-              // ৩০ দিন পার হয়নি — ফর্ম ব্লক করো
-              document.getElementById('pay-up').style.display='none';
+              blocked=true;
               document.getElementById('pay-login').style.display='none';
-              var nextDate=new Date(latestDate.getTime()+30*24*60*60*1000);
+              var nextDate=new Date(lastDay.getTime()+30*24*60*60*1000);
               var nextStr=pad(nextDate.getDate())+'/'+pad(nextDate.getMonth()+1)+'/'+nextDate.getFullYear();
+              // পুরনো block div থাকলে সরাও
+              var oldBlock=document.getElementById('pay-blocked');
+              if(oldBlock) oldBlock.parentNode.removeChild(oldBlock);
               var blockDiv=document.createElement('div');
               blockDiv.id='pay-blocked';
-              blockDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:24px 18px;text-align:center;margin:12px 0;">'
-                +'<div style="font-size:2.2rem;margin-bottom:10px;">⏳</div>'
-                +'<h3 style="color:#b91c1c;font-size:1rem;margin-bottom:8px;">এই মাসে আর জমা দেওয়া যাবে না</h3>'
-                +'<p style="font-size:0.85rem;color:#7f1d1d;line-height:1.7;">আপনার শেষ অনুমোদিত জমার তারিখ থেকে<br><strong>'+diffDays+' দিন</strong> হয়েছে।<br>'
+              blockDiv.className='fw';
+              blockDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:28px 18px;text-align:center;margin:8px 0;">'
+                +'<div style="font-size:2.5rem;margin-bottom:12px;">⏳</div>'
+                +'<h3 style="color:#b91c1c;font-size:1.05rem;margin-bottom:10px;">৩০ দিনের আগে আবার জমা দেওয়া যাবে না</h3>'
+                +'<p style="font-size:0.85rem;color:#7f1d1d;line-height:1.8;">শেষ অনুমোদিত জমার পর <strong>'+diffDays+' দিন</strong> হয়েছে।<br>'
                 +'নতুন জমা দিতে আরও <strong>'+remaining+' দিন</strong> অপেক্ষা করুন।</p>'
-                +'<div style="margin-top:14px;background:#fff;border:1px solid #fecaca;border-radius:7px;padding:10px 16px;display:inline-block;font-size:0.82rem;color:#991b1b;">'
+                +'<div style="margin-top:16px;background:#fff;border:1px solid #fecaca;border-radius:8px;padding:11px 18px;display:inline-block;font-size:0.83rem;color:#991b1b;">'
                 +'📅 পরবর্তী জমার তারিখ: <strong>'+nextStr+'</strong></div>'
-                +'<div style="margin-top:10px;"><button onclick="resetPay()" style="background:#6b7280;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:0.8rem;cursor:pointer;font-family:inherit;">🔄 ফিরে যান</button></div>'
+                +'<div style="margin-top:12px;"><button onclick="resetPay()" style="background:#6b7280;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:0.82rem;cursor:pointer;font-family:inherit;">🔄 ফিরে যান</button></div>'
                 +'</div>';
-              // pay-login এর ঠিক আগে insert করো
-              var loginEl=document.getElementById('pay-login');
-              loginEl.parentNode.insertBefore(blockDiv, loginEl);
-              return;
+              document.getElementById('subtab-pay').insertBefore(blockDiv, document.getElementById('subtab-pay').querySelector('.fw'));
             }
           }
         }
-      },function(){window._myPayments=[];});
+        if(!blocked){
+          // ব্লক নেই — ফর্ম দেখাও
+          document.getElementById('pay-login').style.display='none';
+          document.getElementById('m-inf').innerHTML='<strong>নাম:</strong> '+curMember.name+'<br><strong>মোবাইল:</strong> '+curMember.phone+'<br><strong>শেয়ার:</strong> '+curMember.shares+'&nbsp;&nbsp;<strong>মাসিক:</strong> '+(parseInt(curMember.shares)*1000)+' টাকা';
+          document.getElementById('pay-up').style.display='block';
+          initPayMonths();
+        }
+      },function(){
+        // getData ব্যর্থ হলে ফর্ম দেখাও
+        window._myPayments=[];
+        document.getElementById('lsb').style.display='none';
+        document.getElementById('pay-login').style.display='none';
+        document.getElementById('m-inf').innerHTML='<strong>নাম:</strong> '+curMember.name+'<br><strong>মোবাইল:</strong> '+curMember.phone+'<br><strong>শেয়ার:</strong> '+curMember.shares+'&nbsp;&nbsp;<strong>মাসিক:</strong> '+(parseInt(curMember.shares)*1000)+' টাকা';
+        document.getElementById('pay-up').style.display='block';
+        initPayMonths();
+      });
     } else {
       sb('lsb','error','❌ তথ্য মেলেনি। নিবন্ধিত নাম ও মোবাইল/ইমেইল দিন।');
       document.getElementById('l-btn').disabled=false;
