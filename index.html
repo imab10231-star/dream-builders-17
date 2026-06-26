@@ -274,6 +274,43 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
   <!-- সাব-ট্যাব: মাসিক জমা -->
   <div id="subtab-pay">
   <div class="fw">
+    <!-- পেমেন্ট তথ্য কার্ড -->
+    <div class="fw" style="padding-bottom:0;">
+      <div style="background:#fff;border:1px solid var(--bdr);border-radius:13px;overflow:hidden;margin-bottom:16px;">
+        <div style="background:linear-gradient(135deg,#1a3c2e,#2d6a4f);padding:13px 18px;">
+          <div style="font-size:0.78rem;font-weight:700;color:#f0d080;letter-spacing:0.1em;text-transform:uppercase;">💳 জমা পাঠানোর মাধ্যম</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">নিচের যেকোনো মাধ্যমে টাকা পাঠিয়ে রিসিভ আপলোড করুন</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+          <!-- বিকাশ -->
+          <div style="padding:14px 16px;border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <div style="width:32px;height:32px;background:#e2136e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#fff;flex-shrink:0;">bKash</div>
+              <div style="font-size:0.82rem;font-weight:700;color:var(--gd);">বিকাশ</div>
+            </div>
+            <div style="font-size:0.92rem;font-weight:700;color:#e2136e;letter-spacing:0.04em;">01857-718430</div>
+            <div style="font-size:0.72rem;color:var(--tm);margin-top:3px;">Personal</div>
+            <button onclick="navigator.clipboard&&navigator.clipboard.writeText('01857718430').then(function(){var t=document.getElementById('bk-copy');t.textContent='✓ কপি হয়েছে';setTimeout(function(){t.textContent='📋 কপি করুন';},1500);})" style="margin-top:7px;background:#fce4ec;color:#c2185b;border:none;padding:4px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;font-family:inherit;" id="bk-copy">📋 কপি করুন</button>
+          </div>
+          <!-- ব্যাংক -->
+          <div style="padding:14px 16px;border-bottom:1px solid var(--bdr);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <div style="width:32px;height:32px;background:#1a3c2e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#f0d080;flex-shrink:0;">IFIC</div>
+              <div style="font-size:0.82rem;font-weight:700;color:var(--gd);">IFIC ব্যাংক</div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--tm);line-height:1.9;">
+              <div>📍 <strong>শাখা:</strong> আনন্দ বাজার, চাঁদপুর</div>
+              <div>🔢 <strong>একাউন্ট:</strong> <span style="font-weight:700;color:var(--gd);">0210016395031</span></div>
+              <div>👤 <strong>নাম:</strong> Harun Ur Rashid & Friends</div>
+            </div>
+            <button onclick="navigator.clipboard&&navigator.clipboard.writeText('0210016395031').then(function(){var t=document.getElementById('bk-acc-copy');t.textContent='✓ কপি হয়েছে';setTimeout(function(){t.textContent='📋 কপি করুন';},1500);})" style="margin-top:7px;background:#e8f5ee;color:#1a3c2e;border:none;padding:4px 10px;border-radius:5px;font-size:0.72rem;cursor:pointer;font-family:inherit;" id="bk-acc-copy">📋 কপি করুন</button>
+          </div>
+        </div>
+        <div style="padding:10px 16px;background:#f8f4ec;font-size:0.76rem;color:var(--tm);text-align:center;">
+          ⚠️ টাকা পাঠানোর পর রিসিভ/স্ক্রিনশট সংরক্ষণ করুন এবং নিচে আপলোড করুন
+        </div>
+      </div>
+    </div>
     <div id="pay-login">
       <div class="login-box">
         <h3>🔐 পরিচয় যাচাই করুন</h3>
@@ -583,9 +620,44 @@ function verifyMember(){
       document.getElementById('pay-login').style.display='none';
       document.getElementById('pay-up').style.display='block';
       initPayMonths();
-      // সদস্যের জমার ইতিহাস লোড করো বকেয়া গণনার জন্য
+      // সদস্যের জমার ইতিহাস লোড করো — ৩০ দিনের চেক সহ
       xhrPost({action:'getData',memberName:r.member.name},function(d){
         window._myPayments = d.payments||[];
+        // শেষ অনুমোদিত জমা ৩০ দিনের মধ্যে কিনা চেক করো
+        var approvedPays=(d.payments||[]).filter(function(p){return (p.approval||'অপেক্ষমান')==='অনুমোদিত';});
+        if(approvedPays.length>0){
+          // সবচেয়ে সাম্প্রতিক অনুমোদিত জমার তারিখ বের করো
+          var latestDate=null;
+          approvedPays.forEach(function(p){
+            var parts=(p.submitDate||'').split('/');
+            if(parts.length===3){
+              var d2=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+              if(!latestDate||d2>latestDate) latestDate=d2;
+            }
+          });
+          if(latestDate){
+            var now2=new Date();
+            var diffDays=Math.floor((now2-latestDate)/(1000*60*60*24));
+            var remaining=30-diffDays;
+            if(remaining>0){
+              // ৩০ দিন পার হয়নি — ফর্ম ব্লক করো
+              document.getElementById('pay-up').style.display='none';
+              document.getElementById('pay-login').style.display='none';
+              var blockDiv=document.createElement('div');
+              blockDiv.id='pay-blocked';
+              blockDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:24px 18px;text-align:center;margin:20px 0;">'
+                +'<div style="font-size:2rem;margin-bottom:10px;">⏳</div>'
+                +'<h3 style="color:#b91c1c;font-size:1rem;margin-bottom:8px;">এই মাসে আর জমা দেওয়া যাবে না</h3>'
+                +'<p style="font-size:0.85rem;color:#7f1d1d;">আপনার শেষ অনুমোদিত জমার তারিখ থেকে <strong>'+diffDays+' দিন</strong> হয়েছে।<br>'
+                +'নতুন জমা দিতে আরও <strong>'+remaining+' দিন</strong> অপেক্ষা করতে হবে।</p>'
+                +'<div style="margin-top:14px;background:#fff;border-radius:7px;padding:10px;display:inline-block;font-size:0.8rem;color:#991b1b;">'
+                +'📅 পরবর্তী জমার তারিখ: <strong>'+(function(){var nd=new Date(latestDate.getTime()+30*24*60*60*1000);return pad(nd.getDate())+'/'+pad(nd.getMonth()+1)+'/'+nd.getFullYear();})()+'</strong></div>'
+                +'</div>';
+              document.getElementById('pay-login').parentNode.insertBefore(blockDiv, document.getElementById('pay-login'));
+              return;
+            }
+          }
+        }
       },function(){window._myPayments=[];});
     } else {
       sb('lsb','error','❌ তথ্য মেলেনি। নিবন্ধিত নাম ও মোবাইল/ইমেইল দিন।');
@@ -664,6 +736,9 @@ async function submitPayment(){
 
 function resetPay(){
   curMember=null;recB64=null;
+  // blocked div থাকলে সরাও
+  var bl=document.getElementById('pay-blocked');
+  if(bl) bl.parentNode.removeChild(bl);
   document.getElementById('pay-login').style.display='block';
   document.getElementById('pay-up').style.display='none';
   document.getElementById('pay-done').style.display='none';
