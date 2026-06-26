@@ -643,17 +643,22 @@ function verifyMember(){
               // ৩০ দিন পার হয়নি — ফর্ম ব্লক করো
               document.getElementById('pay-up').style.display='none';
               document.getElementById('pay-login').style.display='none';
+              var nextDate=new Date(latestDate.getTime()+30*24*60*60*1000);
+              var nextStr=pad(nextDate.getDate())+'/'+pad(nextDate.getMonth()+1)+'/'+nextDate.getFullYear();
               var blockDiv=document.createElement('div');
               blockDiv.id='pay-blocked';
-              blockDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:24px 18px;text-align:center;margin:20px 0;">'
-                +'<div style="font-size:2rem;margin-bottom:10px;">⏳</div>'
+              blockDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:24px 18px;text-align:center;margin:12px 0;">'
+                +'<div style="font-size:2.2rem;margin-bottom:10px;">⏳</div>'
                 +'<h3 style="color:#b91c1c;font-size:1rem;margin-bottom:8px;">এই মাসে আর জমা দেওয়া যাবে না</h3>'
-                +'<p style="font-size:0.85rem;color:#7f1d1d;">আপনার শেষ অনুমোদিত জমার তারিখ থেকে <strong>'+diffDays+' দিন</strong> হয়েছে।<br>'
-                +'নতুন জমা দিতে আরও <strong>'+remaining+' দিন</strong> অপেক্ষা করতে হবে।</p>'
-                +'<div style="margin-top:14px;background:#fff;border-radius:7px;padding:10px;display:inline-block;font-size:0.8rem;color:#991b1b;">'
-                +'📅 পরবর্তী জমার তারিখ: <strong>'+(function(){var nd=new Date(latestDate.getTime()+30*24*60*60*1000);return pad(nd.getDate())+'/'+pad(nd.getMonth()+1)+'/'+nd.getFullYear();})()+'</strong></div>'
+                +'<p style="font-size:0.85rem;color:#7f1d1d;line-height:1.7;">আপনার শেষ অনুমোদিত জমার তারিখ থেকে<br><strong>'+diffDays+' দিন</strong> হয়েছে।<br>'
+                +'নতুন জমা দিতে আরও <strong>'+remaining+' দিন</strong> অপেক্ষা করুন।</p>'
+                +'<div style="margin-top:14px;background:#fff;border:1px solid #fecaca;border-radius:7px;padding:10px 16px;display:inline-block;font-size:0.82rem;color:#991b1b;">'
+                +'📅 পরবর্তী জমার তারিখ: <strong>'+nextStr+'</strong></div>'
+                +'<div style="margin-top:10px;"><button onclick="resetPay()" style="background:#6b7280;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:0.8rem;cursor:pointer;font-family:inherit;">🔄 ফিরে যান</button></div>'
                 +'</div>';
-              document.getElementById('pay-login').parentNode.insertBefore(blockDiv, document.getElementById('pay-login'));
+              // pay-login এর ঠিক আগে insert করো
+              var loginEl=document.getElementById('pay-login');
+              loginEl.parentNode.insertBefore(blockDiv, loginEl);
               return;
             }
           }
