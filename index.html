@@ -525,7 +525,7 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 <div class="footer"><strong>Dream Builders 17 – SSC ব্যাচ ২০১৭</strong><br>বিশ্বাস · সহযোগিতা · সমৃদ্ধি</div>
 
 <script>
-var SURL = "https://script.google.com/macros/s/AKfycbwvCBS9NpQXtrl8waJVKjn_mqSX07UrwYjmgyvYP3WwvM6g-w5bQpejEXY8eIydlxqAuQ/exec";
+var SURL = "https://script.google.com/macros/s/AKfycbyOvfVsqtv_p_QfwkMeassiNx3Hzjr1sFfkEAbaBjW79ZHq5trRhAi3_DAEhwqbwpxVoQ/exec";
 var REG_OPEN = false; // Sheet থেকে লোড হবে — নিচে loadRegSetting() দেখুন
 var MNS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 var curMember=null, recB64=null, admUser=null, ledMember=null;
@@ -1539,6 +1539,23 @@ function rejectLoan(rowIndex,btn){
   },function(){alert('সংযোগ সমস্যা।');if(btn){btn.disabled=false;btn.textContent='বাতিল';}});
 }
 
+
+// পেজ লোড হলে reg অবস্থা চেক করো
+window.addEventListener('load', function(){
+  xhrPost({action:'getSetting',key:'reg_open',defaultValue:'false'},function(r){
+    REG_OPEN=(r.value.toLowerCase()==='true');
+    // যদি এখন reg ট্যাব active থাকে
+    var regTab=document.getElementById('tab-reg');
+    if(regTab&&regTab.classList.contains('active')){
+      var closed=document.getElementById('reg-closed');
+      var open=document.getElementById('reg-open-content');
+      if(closed&&open){
+        if(!REG_OPEN){closed.style.display='block';open.style.display='none';}
+        else{closed.style.display='none';open.style.display='block';}
+      }
+    }
+  },function(){REG_OPEN=false;});
+});
 </script>
 </body>
 </html>
