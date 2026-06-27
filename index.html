@@ -526,18 +526,24 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--cream);color:var(--
 
 <script>
 var SURL = "https://script.google.com/macros/s/AKfycbyQ7xMlaRbZgoD2tmvkJBDoqk89_YAtf9t_9bvFdW3gVMTAb1XwG4dpdCE1qeIYmmeLqA/exec";
-var REG_OPEN = false; // অ্যাডমিন প্যানেল থেকে নিয়ন্ত্রণ করা হয়
+var REG_OPEN = false; // Sheet থেকে লোড হবে — নিচে loadRegSetting() দেখুন
 var MNS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 var curMember=null, recB64=null, admUser=null, ledMember=null;
 
 function showTab(t){
   if(t==='reg'){
-    setTimeout(function(){
+    xhrPost({action:'getSetting',key:'reg_open',defaultValue:'false'},function(r){
+      REG_OPEN=(r.value==='true');
       var closed=document.getElementById('reg-closed');
       var open=document.getElementById('reg-open-content');
       if(!REG_OPEN){closed.style.display='block';open.style.display='none';}
       else{closed.style.display='none';open.style.display='block';}
-    },0);
+    },function(){
+      var closed=document.getElementById('reg-closed');
+      var open=document.getElementById('reg-open-content');
+      if(!REG_OPEN){closed.style.display='block';open.style.display='none';}
+      else{closed.style.display='none';open.style.display='block';}
+    });
   }
   document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
@@ -1147,8 +1153,11 @@ function loadAdminData(){
     renderLoanTable(lr.loans||[]);
     updateLoanStats(lr.loans||[]);
   },function(){renderLoanTable([]);});
-  // নিবন্ধন অবস্থা লোড
-  updateRegToggleUI();
+  // নিবন্ধন অবস্থা Sheet থেকে লোড
+  xhrPost({action:'getSetting',key:'reg_open',defaultValue:'false'},function(r){
+    REG_OPEN=(r.value==='true');
+    updateRegToggleUI();
+  },function(){ updateRegToggleUI(); });
 }
 
 // ── জমা অনুমোদন/বাতিল ──
@@ -1374,6 +1383,12 @@ function toggleCalRows(){
 }
 
 // ── নিবন্ধন টগল ──
+function loadRegSetting(){
+  xhrPost({action:'getSetting',key:'reg_open',defaultValue:'false'},function(r){
+    REG_OPEN = (r.value==='true');
+  },function(){ REG_OPEN=false; });
+}
+
 function updateRegToggleUI(){
   var btn=document.getElementById('reg-toggle-btn');
   var txt=document.getElementById('reg-status-text');
@@ -1390,15 +1405,23 @@ function updateRegToggleUI(){
 }
 
 function toggleRegistration(){
-  REG_OPEN=!REG_OPEN;
-  updateRegToggleUI();
-  // reg ট্যাব যদি এখন খোলা থাকে সেটাও আপডেট করো
-  var closed=document.getElementById('reg-closed');
-  var open=document.getElementById('reg-open-content');
-  if(closed&&open){
-    if(!REG_OPEN){closed.style.display='block';open.style.display='none';}
-    else{closed.style.display='none';open.style.display='block';}
-  }
+  var btn=document.getElementById('reg-toggle-btn');
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  var newVal=!REG_OPEN;
+  xhrPost({action:'setSetting',key:'reg_open',value:String(newVal)},function(r){
+    REG_OPEN=newVal;
+    if(btn) btn.disabled=false;
+    updateRegToggleUI();
+    var closed=document.getElementById('reg-closed');
+    var open=document.getElementById('reg-open-content');
+    if(closed&&open){
+      if(!REG_OPEN){closed.style.display='block';open.style.display='none';}
+      else{closed.style.display='none';open.style.display='block';}
+    }
+  },function(){
+    if(btn){btn.disabled=false;btn.textContent=REG_OPEN?'🔒 বন্ধ করুন':'🟢 চালু করুন';}
+    alert('সংযোগ সমস্যা।');
+  });
 }
 
 // ── লোন আবেদন JS ──
